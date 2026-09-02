@@ -48,6 +48,7 @@ backend/.env
 *.swo
 .DS_Store
 Thumbs.db
+.freebuff/
 
 # Test Snapshot & Backup Artifacts
 backups/

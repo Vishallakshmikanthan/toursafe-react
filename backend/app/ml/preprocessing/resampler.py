@@ -6,7 +6,6 @@ and jittered IMU sensor streams.
 
 from typing import List, Optional, Tuple, Union
 import numpy as np
-from scipy.interpolate import interp1d
 
 
 class IMUResampler:
@@ -88,18 +87,16 @@ class IMUResampler:
         # Construct target uniform timestamps
         target_timestamps = np.linspace(t_start, t_end, target_length, endpoint=False)
 
-        # Build interpolator per channel
-        # Use linear interpolation with extrapolation clamped to boundary values
-        interpolator = interp1d(
-            timestamps_sec,
-            sensor_values,
-            axis=0,
-            kind="linear",
-            bounds_error=False,
-            fill_value=(sensor_values[0], sensor_values[-1]),
-        )
-
-        resampled_values = interpolator(target_timestamps)
+        # Build interpolator per channel using robust numpy 1d interpolation
+        resampled_values = np.zeros((target_length, n_channels), dtype=np.float64)
+        for c in range(n_channels):
+            resampled_values[:, c] = np.interp(
+                target_timestamps,
+                timestamps_sec,
+                sensor_values[:, c],
+                left=sensor_values[0, c],
+                right=sensor_values[-1, c],
+            )
         is_valid = not has_excessive_gap
 
         return target_timestamps, resampled_values, is_valid

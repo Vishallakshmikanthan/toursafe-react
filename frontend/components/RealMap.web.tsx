@@ -89,18 +89,18 @@ function buildMapHtml({
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html, body, #map { margin: 0; padding: 0; height: 100%; width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; }
-    .leaflet-popup-content-wrapper { background: #1e293b; color: #f8fafc; border-radius: 8px; border: 1px solid #334155; }
-    .leaflet-popup-tip { background: #1e293b; }
-    .leaflet-popup-content { font-size: 12px; font-weight: 500; margin: 8px 12px; line-height: 1.4; }
-    .custom-div-icon { display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.4); font-weight: bold; color: #fff; font-size: 11px; }
+    html, body, #map { margin: 0; padding: 0; height: 100%; width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F8FAFC; }
+    .leaflet-popup-content-wrapper { background: #FFFFFF; color: #0F172A; border-radius: 10px; border: 1px solid #E2E8F0; box-shadow: 0 4px 16px rgba(15,23,42,0.12); }
+    .leaflet-popup-tip { background: #FFFFFF; }
+    .leaflet-popup-content { font-size: 12px; font-weight: 600; margin: 10px 14px; line-height: 1.4; color: #0F172A; }
+    .custom-div-icon { display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 2px 8px rgba(15,23,42,0.25); font-weight: bold; color: #fff; font-size: 11px; }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    var map = L.map('map', { zoomControl: true }).setView([${region.latitude}, ${region.longitude}], ${region.zoom || 13});
+    var map = L.map('map', { zoomControl: false }).setView([${region.latitude}, ${region.longitude}], ${region.zoom || 13});
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap',
       maxZoom: 19,
@@ -110,7 +110,7 @@ function buildMapHtml({
 
     var route = ${routeJson};
     if (route.length > 1) {
-      L.polyline(route, { color: '#38bdf8', weight: 4, opacity: 0.85, dashArray: '6, 8' }).addTo(map);
+      L.polyline(route, { color: '#0284C7', weight: 4, opacity: 0.9, dashArray: '6, 8' }).addTo(map);
       bounds = bounds.concat(route);
     }
 
@@ -121,7 +121,7 @@ function buildMapHtml({
           color: poly.color,
           weight: 2,
           fillColor: poly.fillColor,
-          fillOpacity: 0.25
+          fillOpacity: 0.22
         }).addTo(map);
         if (poly.name) {
           p.bindPopup(poly.name);
@@ -132,22 +132,22 @@ function buildMapHtml({
 
     var markers = ${markersJson};
     markers.forEach(function (m) {
-      var color = m.color || '#3b82f6';
+      var color = m.color || '#0284c7';
       var customIcon = L.divIcon({
         className: 'custom-div-icon',
-        html: '<div style="background-color:' + color + ';width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:bold;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,0.4);">' + (m.icon || '') + '</div>',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
+        html: '<div style="background-color:' + color + ';width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:bold;border:2px solid #fff;box-shadow:0 2px 6px rgba(15,23,42,0.25);">' + (m.icon || '') + '</div>',
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
       });
 
       var marker = L.marker([m.latitude, m.longitude], { icon: customIcon, title: m.title }).addTo(map);
-      var popupContent = '<strong>' + m.title + '</strong>' + (m.subtitle ? '<br/><span style="color:#94a3b8;font-size:11px;">' + m.subtitle + '</span>' : '');
+      var popupContent = '<strong style="color:#0F172A;font-size:13px;">' + m.title + '</strong>' + (m.subtitle ? '<br/><span style="color:#64748B;font-size:11px;font-weight:500;">' + m.subtitle + '</span>' : '');
       marker.bindPopup(popupContent);
       bounds.push([m.latitude, m.longitude]);
     });
 
     if (bounds.length > 0) {
-      map.fitBounds(bounds, { padding: [36, 36], maxZoom: 15 });
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }
   </script>
 </body>
@@ -162,21 +162,23 @@ export default function RealMap({
   polygons = [],
   overlayTitle,
   overlayText,
-  height = 360,
+  height = '100%',
 }: RealMapProps) {
   const html = useMemo(
     () => buildMapHtml({ region, markers, route, polygon, polygons }),
     [region, markers, route, polygon, polygons]
   );
 
+  const isFull = height === '100%' || height === undefined;
+
   return (
-    <View style={styles.wrapper}>
-      <View style={[styles.frame, { minHeight: typeof height === 'number' ? height : 360 }]}>
+    <View style={[styles.wrapper, isFull && styles.fullWrapper]}>
+      <View style={[styles.frame, isFull ? styles.fullFrame : { height: typeof height === 'number' ? height : 360 }]}>
         {React.createElement('iframe', {
           title: 'TourSafe map',
           srcDoc: html,
           loading: 'lazy',
-          style: { width: '100%', height: height, border: 0 },
+          style: { width: '100%', height: '100%', border: 0, display: 'block' },
         })}
       </View>
 
@@ -195,30 +197,44 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  fullWrapper: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    borderRadius: 0,
+    borderWidth: 0,
   },
   frame: {
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#F8FAFC',
+  },
+  fullFrame: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    borderRadius: 0,
   },
   overlay: {
     marginTop: 10,
     borderRadius: 10,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
     padding: 12,
   },
   overlayTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: '#0F172A',
   },
   overlayText: {
     marginTop: 4,
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#64748B',
     lineHeight: 18,
   },
 });

@@ -4,7 +4,7 @@ Extracts 6 raw IMU channels (accel x/y/z in g, gyro x/y/z in rad/s) and
 computes derived vector magnitudes (accel_mag, gyro_mag) for canonical 8-channel input.
 """
 
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 
 from ..config import FEATURE_NAMES, RAW_IMU_CHANNELS

@@ -9,8 +9,15 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
-import onnxruntime as ort
-import torch
+try:
+    import onnxruntime as ort
+except Exception:
+    ort = None
+
+try:
+    import torch
+except Exception:
+    torch = None
 
 from ...core.config import settings
 from ...ml.config import FEATURE_NAMES, RAW_IMU_CHANNELS

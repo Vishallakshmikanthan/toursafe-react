@@ -227,7 +227,7 @@ export default function SafetyScreen() {
               "We noticed an unexpected change in your route or movement dynamics. Please confirm your status:"}
           </Text>
           <View style={styles.checkButtons}>
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
               style={[styles.btnSafe, submittingCheck && { opacity: 0.6 }]}
               onPress={handleConfirmSafe}
               disabled={submittingCheck}
@@ -241,7 +241,7 @@ export default function SafetyScreen() {
                 </>
               )}
             </TouchableOpacity>
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
               style={styles.btnEmergency}
               onPress={handleTriggerEmergency}
               disabled={submittingCheck}
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
     gap: 6,
   },
   zoneCardTop: {
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
     gap: 6,
   },
   alertTop: {

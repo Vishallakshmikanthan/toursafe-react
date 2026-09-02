@@ -4,7 +4,7 @@ Manages legal holds placed on users, incidents, jurisdictions, or data types to 
 """
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from pymongo import ASCENDING, DESCENDING, IndexModel
 
 from ...core import database as db_core

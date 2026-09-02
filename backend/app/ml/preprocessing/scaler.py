@@ -7,9 +7,20 @@ to protect normalization parameters from extreme kinetic outliers during trainin
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
-import joblib
+try:
+    import joblib
+except Exception:
+    joblib = None
+
+try:
+    from sklearn.base import BaseEstimator, TransformerMixin
+except Exception:
+    class BaseEstimator:
+        pass
+    class TransformerMixin:
+        pass
+
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
 
 from ..config import FEATURE_NAMES
 

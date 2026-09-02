@@ -4,14 +4,22 @@ Packages model weights (PyTorch .pt), ONNX computational graphs with parity veri
 RobustScaler configuration, calibrated thresholds, and SHA-256 cryptographic checksums.
 """
 
+from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
-import onnxruntime as ort
-import torch
+try:
+    import onnxruntime as ort
+except Exception:
+    ort = None
+
+try:
+    import torch
+except Exception:
+    torch = None
 
 from ...schemas.ml_lifecycle import (
     ModelEvaluationMetrics,

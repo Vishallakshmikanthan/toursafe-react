@@ -5,15 +5,19 @@ threshold calibration, artifact packaging, experiment logging, and model registr
 Guarantees newly trained models remain in 'TRAINED' state until human governance approval.
 """
 
+from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 import logging
 import platform
 import sys
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 import numpy as np
-import torch
+try:
+    import torch
+except Exception:
+    torch = None
 
 from ...core import database as db_core
 from ...schemas.ml_lifecycle import (

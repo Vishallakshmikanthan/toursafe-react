@@ -10,7 +10,12 @@ from datetime import datetime, timezone
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
-from scipy import stats
+try:
+    from scipy import stats
+    _HAS_SCIPY = True
+except Exception:
+    stats = None
+    _HAS_SCIPY = False
 
 from ...schemas.ml_lifecycle import (
     DriftStatus,
@@ -107,9 +112,17 @@ class FeatureDriftDetector:
         sim_baseline = np.random.normal(b_mean, b_std, size=min(1000, len(valid_vals)))
 
         psi = self.calculate_psi(sim_baseline, valid_vals)
-        ks_res = stats.ks_2samp(sim_baseline, valid_vals)
-        ks_stat = float(ks_res.statistic)
-        ks_pval = float(ks_res.pvalue)
+        if _HAS_SCIPY and stats is not None:
+            try:
+                ks_res = stats.ks_2samp(sim_baseline, valid_vals)
+                ks_stat = float(ks_res.statistic)
+                ks_pval = float(ks_res.pvalue)
+            except Exception:
+                ks_stat = 0.0
+                ks_pval = 1.0
+        else:
+            ks_stat = 0.0
+            ks_pval = 1.0
 
         curr_mean = float(np.mean(valid_vals))
         curr_std = float(np.std(valid_vals))

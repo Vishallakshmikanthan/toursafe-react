@@ -4,20 +4,35 @@ Computes reconstruction errors, ROC-AUC, PR-AUC, F1-Scores, Confusion Matrices,
 and comparative baseline benchmarks.
 """
 
+from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
-from sklearn.metrics import (
-    average_precision_score,
-    confusion_matrix,
-    f1_score,
-    precision_score,
-    recall_score,
-    roc_auc_score,
-    roc_curve,
-    precision_recall_curve,
-)
-import torch
+try:
+    from sklearn.metrics import (
+        average_precision_score,
+        confusion_matrix,
+        f1_score,
+        precision_score,
+        recall_score,
+        roc_auc_score,
+        roc_curve,
+        precision_recall_curve,
+    )
+except Exception:
+    average_precision_score = None
+    confusion_matrix = None
+    f1_score = None
+    precision_score = None
+    recall_score = None
+    roc_auc_score = None
+    roc_curve = None
+    precision_recall_curve = None
+
+try:
+    import torch
+except Exception:
+    torch = None
 
 from ..models.lstm_autoencoder import TourSafeLSTMAutoencoder
 from ..models.baselines import KinematicPeakDetector, IsolationForestDetector

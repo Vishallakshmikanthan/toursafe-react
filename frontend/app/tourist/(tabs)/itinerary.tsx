@@ -168,7 +168,7 @@ export default function ItineraryScreen() {
           <Text style={styles.headerKicker}>TOURIST JOURNEY PLANNER</Text>
           <Text style={styles.headerTitle}>Trips & Itinerary</Text>
         </View>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
           style={styles.newTripBtn}
           onPress={() => setCreateModalVisible(true)}
         >
@@ -179,7 +179,7 @@ export default function ItineraryScreen() {
 
       {/* Tabs */}
       <View style={styles.tabBar}>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
           style={[styles.tabItem, activeTab === "active" && styles.tabItemActive]}
           onPress={() => setActiveTab("active")}
         >
@@ -187,7 +187,7 @@ export default function ItineraryScreen() {
             Active Journey {activeTrip ? "•" : ""}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
           style={[styles.tabItem, activeTab === "upcoming" && styles.tabItemActive]}
           onPress={() => setActiveTab("upcoming")}
         >
@@ -195,7 +195,7 @@ export default function ItineraryScreen() {
             Upcoming ({upcomingTrips.length})
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
           style={[styles.tabItem, activeTab === "completed" && styles.tabItemActive]}
           onPress={() => setActiveTab("completed")}
         >
@@ -236,7 +236,7 @@ export default function ItineraryScreen() {
                           </Text>
                         </View>
                       </View>
-                      <TouchableOpacity
+                      <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
                         style={styles.completeBtn}
                         onPress={handleCompleteTrip}
                       >
@@ -271,7 +271,7 @@ export default function ItineraryScreen() {
                         {activeTrip.itinerary_stops?.length || 0} scheduled stops
                       </Text>
                     </View>
-                    <TouchableOpacity
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
                       style={styles.addStopBtn}
                       onPress={() => setAddStopModalVisible(true)}
                     >
@@ -364,7 +364,7 @@ export default function ItineraryScreen() {
                       <Text style={styles.emptyStopsSub}>
                         Add your planned tourist attractions, viewpoints, or hotels.
                       </Text>
-                      <TouchableOpacity
+                      <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
                         style={styles.emptyAddBtn}
                         onPress={() => setAddStopModalVisible(true)}
                       >
@@ -381,7 +381,7 @@ export default function ItineraryScreen() {
                   <Text style={styles.emptyTripsDesc}>
                     You are not currently on an active trip. Create a new journey to enable automatic waypoint tracking and location safety corridors.
                   </Text>
-                  <TouchableOpacity
+                  <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
                     style={styles.createFirstTripBtn}
                     onPress={() => setCreateModalVisible(true)}
                   >
@@ -531,13 +531,13 @@ export default function ItineraryScreen() {
             </View>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
                 style={styles.cancelBtn}
                 onPress={() => setCreateModalVisible(false)}
               >
                 <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
                 style={styles.submitBtn}
                 onPress={handleCreateTrip}
                 disabled={submitting}
@@ -596,13 +596,13 @@ export default function ItineraryScreen() {
             </View>
 
             <View style={styles.modalButtons}>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
                 style={styles.cancelBtn}
                 onPress={() => setAddStopModalVisible(false)}
               >
                 <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
                 style={styles.submitBtn}
                 onPress={handleAddStop}
                 disabled={submitting}
@@ -705,11 +705,11 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   heroCard: {
-    backgroundcolor: "#0F172A",
+    backgroundColor: "#0F172A",
     borderRadius: 20,
     padding: 18,
     borderWidth: 1,
-    bordercolor: "#475569",
+    borderColor: "#475569",
     gap: 12,
   },
   heroHeader: {
@@ -781,7 +781,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 8,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
   },
   trackingStatusText: {
     fontSize: 12,
@@ -859,11 +859,11 @@ const styles = StyleSheet.create({
   },
   stopCard: {
     flex: 1,
-    backgroundcolor: "#0F172A",
+    backgroundColor: "#0F172A",
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
     marginBottom: 14,
     gap: 6,
   },
@@ -918,7 +918,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
     gap: 8,
   },
   emptyStopsTitle: {
@@ -948,11 +948,11 @@ const styles = StyleSheet.create({
   },
   emptyTripsCard: {
     alignItems: "center",
-    backgroundcolor: "#0F172A",
+    backgroundColor: "#0F172A",
     borderRadius: 20,
     padding: 30,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
     gap: 12,
   },
   emptyTripsTitle: {
@@ -985,11 +985,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   tripListItem: {
-    backgroundcolor: "#0F172A",
+    backgroundColor: "#0F172A",
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
     gap: 8,
   },
   tripListTop: {
@@ -1047,7 +1047,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 24,
     borderTopWidth: 1,
-    bordercolor: "#475569",
+    borderColor: "#475569",
     gap: 14,
   },
   modalTitle: {
@@ -1079,7 +1079,7 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     fontSize: 14,
     borderWidth: 1,
-    bordercolor: "#475569",
+    borderColor: "#475569",
   },
   modalButtons: {
     flexDirection: "row",

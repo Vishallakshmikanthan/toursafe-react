@@ -128,7 +128,7 @@ export default function OnboardingScreen() {
           <Shield size={22} color="#FF9933" />
           <Text style={styles.brandTitle}>TourSafe</Text>
         </View>
-        <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button" onPress={handleSkip} style={styles.skipButton}>
           <Text style={styles.skipText}>Skip</Text>
         </TouchableOpacity>
       </View>
@@ -199,7 +199,7 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        <TouchableOpacity
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
           style={[styles.primaryButton, isLastSlide && styles.finishButton]}
           onPress={handleNext}
         >

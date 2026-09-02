@@ -9,6 +9,7 @@ Executes strict automated pre-approval verification:
 - Model loadability and inference smoke test matching Prompt 9 output schema.
 """
 
+from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -16,8 +17,15 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import numpy as np
-import onnxruntime as ort
-import torch
+try:
+    import onnxruntime as ort
+except Exception:
+    ort = None
+
+try:
+    import torch
+except Exception:
+    torch = None
 
 from ...schemas.ml import AnomalyState, InferenceStatus
 from ...schemas.ml_lifecycle import (

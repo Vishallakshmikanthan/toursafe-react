@@ -17,8 +17,8 @@ export default function AdminTabsLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: styles.tabBar,
-          tabBarActiveTintColor: '#FF9933',
-          tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.6)',
+          tabBarActiveTintColor: '#2563EB',
+          tabBarInactiveTintColor: '#64748B',
           tabBarLabelStyle: styles.tabBarLabel,
         }}
       >
@@ -93,18 +93,23 @@ export default function AdminTabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#F8FAFC',
   },
   tabBar: {
-    backgroundColor: '#1a365d',
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: '#E2E8F0',
     paddingBottom: 8,
     paddingTop: 8,
     height: 60,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 4,
   },
   tabBarLabel: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 });

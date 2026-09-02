@@ -12,7 +12,10 @@ from pathlib import Path
 import time
 from typing import Any, Dict, List, Optional
 import numpy as np
-import onnxruntime as ort
+try:
+    import onnxruntime as ort
+except Exception:
+    ort = None
 
 from ...schemas.ml_lifecycle import ShadowInferenceMetric
 from ...schemas.telemetry import TelemetryWindow

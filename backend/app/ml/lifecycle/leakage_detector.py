@@ -5,7 +5,7 @@ and Test datasets to prevent temporal or identity data leakage.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 import numpy as np
 
 

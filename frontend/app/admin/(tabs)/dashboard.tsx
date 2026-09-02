@@ -237,8 +237,8 @@ export default function AuthorityCommandCenter() {
       };
     }
     return {
-      latitude: 15.4989,
-      longitude: 73.8278,
+      latitude: 10.2381,
+      longitude: 77.4892,
       zoom: 13,
     };
   }, [mapFocusCoordinates, activeIncident]);
@@ -417,37 +417,37 @@ export default function AuthorityCommandCenter() {
         <View style={styles.headerLeft}>
           <View style={styles.badgeRow}>
             <View style={styles.commandPill}>
-              <Radio size={12} color="#38bdf8" />
-              <Text style={styles.commandPillText}>AUTHORITY COMMAND CENTER</Text>
+              <Radio size={11} color="#0284C7" />
+              <Text style={styles.commandPillText}>COMMAND HUB</Text>
             </View>
             <View style={styles.jurisdictionPill}>
-              <Building size={12} color="#94a3b8" />
+              <Building size={11} color="#64748B" />
               <Text style={styles.jurisdictionText}>
-                {authorityScope?.organization_name || 'Goa Police Department'} • {authorityScope?.jurisdiction_code || 'IN-GOA'}
+                {authorityScope?.organization_name || 'Tamil Nadu Police'} • Kodaikanal Sub-Division
               </Text>
             </View>
           </View>
-          <Text style={styles.headerTitle}>Live Operational Incident & Safety Command</Text>
+          <Text style={styles.headerTitle}>Incident & Safety Command</Text>
           <Text style={styles.headerSubtitle}>
-            Authoritative multisignal intelligence fusion: Realtime GPS, IMU kinematic anomaly inference, GeoJSON geofences, and Responder dispatch.
+            Live monitoring of tourist safety signals, real-time incident queue, and rapid responder dispatch.
           </Text>
         </View>
 
         <View style={styles.headerRight}>
           <View style={styles.headerControlRow}>
             <TouchableOpacity
-              style={[styles.healthButton, { backgroundColor: '#082f49', borderColor: '#0284c7' }]}
+              style={styles.copilotButton}
               onPress={() => setCopilotVisible(true)}
             >
-              <Bot size={14} color="#38bdf8" />
-              <Text style={[styles.healthButtonText, { color: '#38bdf8' }]}>AI COPILOT</Text>
+              <Bot size={14} color="#0284C7" />
+              <Text style={styles.copilotButtonText}>AI Copilot</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.healthButton}
               onPress={() => setHealthModalVisible(true)}
             >
-              <Cpu size={14} color="#38bdf8" />
-              <Text style={styles.healthButtonText}>SYSTEM STATUS</Text>
+              <Cpu size={14} color="#475569" />
+              <Text style={styles.healthButtonText}>System Status</Text>
             </TouchableOpacity>
             <ConnectionStatusBadge />
             <NotificationBellButton />
@@ -456,10 +456,10 @@ export default function AuthorityCommandCenter() {
               onPress={() => reconcileSnapshot()}
               disabled={isRefreshing}
             >
-              <RefreshCw size={15} color="#94a3b8" />
+              <RefreshCw size={14} color="#64748B" />
             </TouchableOpacity>
           </View>
-          <View style={{ marginTop: 8 }}>
+          <View style={{ marginTop: 6 }}>
             <RoleSwitch currentRole="authority" />
           </View>
         </View>
@@ -1194,8 +1194,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0c4a6e',
-    borderColor: '#0284c7',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -1204,31 +1204,34 @@ const styles = StyleSheet.create({
   commandPillText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#38bdf8',
+    color: '#1D4ED8',
     letterSpacing: 0.5,
   },
   jurisdictionPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
   jurisdictionText: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: '#475569',
+    fontWeight: '600',
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#f8fafc',
+    color: '#0F172A',
     letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#64748B',
     marginTop: 4,
     maxWidth: 680,
     lineHeight: 18,
@@ -1241,28 +1244,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  copilotButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BAE6FD',
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  copilotButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
   healthButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#0f172a',
-    borderColor: '#334155',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
     borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
     borderRadius: 8,
   },
   healthButtonText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#38bdf8',
+    color: '#475569',
   },
   refreshButton: {
-    padding: 7,
-    backgroundColor: '#1e293b',
+    padding: 8,
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
   },
   kpiContainer: {
     flexDirection: 'row',
@@ -1278,6 +1297,11 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     borderRadius: 10,
     padding: 12,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   kpiHeader: {
     flexDirection: 'row',
@@ -1328,7 +1352,7 @@ const styles = StyleSheet.create({
   },
   layerLabel: {
     fontSize: 12,
-    color: '#6b7280',
+    color: '#64748B',
     fontWeight: '600',
     marginRight: 4,
   },
@@ -1336,9 +1360,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#111827',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: '#CBD5E1',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
@@ -1350,7 +1374,7 @@ const styles = StyleSheet.create({
   },
   layerBtnText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#475569',
     fontWeight: '600',
   },
   mainWorkspace: {
@@ -1370,11 +1394,16 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     borderRadius: 12,
     padding: 14,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   queueTabs: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: '#E2E8F0',
     paddingBottom: 8,
     marginBottom: 10,
     gap: 6,
@@ -1385,31 +1414,36 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   activeQueueTab: {
-    backgroundColor: '#1e293b',
+    backgroundColor: '#EFF6FF',
   },
   queueTabText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#9ca3af',
+    color: '#64748B',
   },
   activeQueueTabText: {
-    color: '#38bdf8',
+    color: '#1D4ED8',
     fontWeight: '700',
   },
   queueListScroll: {
     maxHeight: 440,
   },
   incidentCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#E2E8F0',
     borderRadius: 8,
     padding: 10,
     marginBottom: 8,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
   },
   selectedIncidentCard: {
-    borderColor: '#38bdf8',
-    backgroundColor: '#082f49',
+    borderColor: '#38BDF8',
+    backgroundColor: '#F0F9FF',
   },
   incidentCardHeader: {
     flexDirection: 'row',
@@ -1429,17 +1463,17 @@ const styles = StyleSheet.create({
   },
   incidentAge: {
     fontSize: 10,
-    color: '#6b7280',
+    color: '#64748B',
   },
   incidentTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#f9fafb',
+    color: '#0F172A',
     marginTop: 2,
   },
   incidentReason: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#64748B',
     marginTop: 2,
   },
   incidentFooter: {
@@ -1451,32 +1485,35 @@ const styles = StyleSheet.create({
   incidentStatus: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#38bdf8',
+    color: '#0284C7',
   },
   focusMapBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   focusMapText: {
     fontSize: 10,
-    color: '#38bdf8',
+    color: '#0284C7',
     fontWeight: '600',
   },
   entityCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#E2E8F0',
     borderRadius: 8,
     padding: 10,
     marginBottom: 8,
   },
   selectedEntityCard: {
-    borderColor: '#38bdf8',
+    borderColor: '#38BDF8',
+    backgroundColor: '#F0F9FF',
   },
   entityHeader: {
     flexDirection: 'row',
@@ -1486,11 +1523,11 @@ const styles = StyleSheet.create({
   entityTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#f9fafb',
+    color: '#0F172A',
   },
   entitySubtitle: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: '#64748B',
     marginTop: 2,
   },
   statusPill: {
@@ -1499,21 +1536,23 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   statusAvailable: {
-    backgroundColor: '#064e3b',
+    backgroundColor: '#059669',
   },
   statusAssigned: {
-    backgroundColor: '#1e3a8a',
+    backgroundColor: '#2563EB',
   },
   statusPillText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#fff',
+    color: '#FFFFFF',
   },
   occupancyBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#0c4a6e',
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -1521,7 +1560,7 @@ const styles = StyleSheet.create({
   occupancyText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#38bdf8',
+    color: '#0284C7',
   },
   mapHeader: {
     flexDirection: 'row',
@@ -1532,11 +1571,11 @@ const styles = StyleSheet.create({
   panelTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: '#0F172A',
   },
   mapLegend: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: '#64748B',
   },
   mapWrapper: {
     borderRadius: 10,
@@ -1554,12 +1593,12 @@ const styles = StyleSheet.create({
   commandKicker: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#38bdf8',
+    color: '#0284C7',
   },
   commandIncidentId: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: '#0F172A',
     marginTop: 2,
   },
   commandStatusRow: {
@@ -1579,7 +1618,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   statusTag: {
-    backgroundColor: '#1e293b',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -1587,7 +1628,7 @@ const styles = StyleSheet.create({
   statusTagText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#94a3b8',
+    color: '#475569',
   },
   ageTag: {
     flexDirection: 'row',
@@ -1596,12 +1637,12 @@ const styles = StyleSheet.create({
   },
   ageTagText: {
     fontSize: 11,
-    color: '#64748b',
+    color: '#64748B',
   },
   detailSection: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#E2E8F0',
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
@@ -1609,22 +1650,22 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#64748b',
+    color: '#64748B',
     marginBottom: 4,
   },
   detailMain: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: '#0F172A',
   },
   detailSub: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: '#64748B',
     marginTop: 2,
   },
   reasonBullet: {
     fontSize: 11,
-    color: '#cbd5e1',
+    color: '#334155',
     marginTop: 2,
   },
   actionGrid: {
@@ -1640,26 +1681,26 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   btnAcknowledge: {
-    backgroundColor: '#0284c7',
+    backgroundColor: '#0284C7',
   },
   btnAssign: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2563EB',
   },
   btnEscalate: {
-    backgroundColor: '#dc2626',
+    backgroundColor: '#DC2626',
   },
   btnResolve: {
-    backgroundColor: '#16a34a',
+    backgroundColor: '#059669',
   },
   btnClose: {
-    backgroundColor: '#1e293b',
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#CBD5E1',
   },
   actionBtnText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#fff',
+    color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   commandPanelEmpty: {
@@ -1672,22 +1713,27 @@ const styles = StyleSheet.create({
   emptyCommandTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#cbd5e1',
+    color: '#0F172A',
     marginTop: 12,
   },
   emptyCommandSub: {
     fontSize: 11,
-    color: '#64748b',
+    color: '#64748B',
     textAlign: 'center',
     marginTop: 6,
     lineHeight: 16,
   },
   eventStreamPanel: {
-    backgroundColor: '#111827',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: '#E2E8F0',
     borderRadius: 12,
     padding: 14,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   eventStreamHeader: {
     flexDirection: 'row',
@@ -1699,11 +1745,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10b981',
+    backgroundColor: '#10B981',
   },
   streamCountText: {
     fontSize: 11,
-    color: '#64748b',
+    color: '#64748B',
   },
   streamActions: {
     flexDirection: 'row',
@@ -1714,7 +1760,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -1722,7 +1770,7 @@ const styles = StyleSheet.create({
   streamActionText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#94a3b8',
+    color: '#475569',
   },
   eventCategoryRow: {
     flexDirection: 'row',
@@ -1731,24 +1779,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   eventCatPill: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#E2E8F0',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
   },
   activeEventCatPill: {
-    backgroundColor: '#0284c7',
-    borderColor: '#38bdf8',
+    backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
   },
   eventCatText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#94a3b8',
+    color: '#64748B',
   },
   activeEventCatText: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
   eventScroll: {
     maxHeight: 180,
@@ -1759,14 +1807,14 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#F1F5F9',
   },
   eventTimeCol: {
     width: 60,
   },
   eventTimeText: {
     fontSize: 10,
-    color: '#64748b',
+    color: '#64748B',
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   eventBadge: {
@@ -1777,20 +1825,20 @@ const styles = StyleSheet.create({
   eventBadgeText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#f8fafc',
+    color: '#FFFFFF',
   },
   eventTitleText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#f1f5f9',
+    color: '#0F172A',
   },
   eventDescText: {
     fontSize: 10,
-    color: '#94a3b8',
+    color: '#64748B',
   },
   emptyEventText: {
     fontSize: 11,
-    color: '#64748b',
+    color: '#64748B',
     paddingVertical: 12,
     textAlign: 'center',
   },
@@ -1801,13 +1849,13 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 12,
-    color: '#64748b',
+    color: '#64748B',
     marginTop: 8,
     textAlign: 'center',
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
@@ -1815,53 +1863,58 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: '#111827',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#1f2937',
-    borderRadius: 12,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
     padding: 16,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#f8fafc',
+    color: '#0F172A',
   },
   modalSubtitle: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#64748B',
     marginTop: 2,
   },
   modalResponderItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#E2E8F0',
     borderRadius: 6,
     padding: 8,
     marginBottom: 6,
   },
   modalResponderItemSelected: {
-    borderColor: '#38bdf8',
-    backgroundColor: '#082f49',
+    borderColor: '#38BDF8',
+    backgroundColor: '#EFF6FF',
   },
   modalRespTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#f8fafc',
+    color: '#0F172A',
   },
   modalRespSub: {
     fontSize: 10,
-    color: '#94a3b8',
+    color: '#64748B',
   },
   modalInput: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#CBD5E1',
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: '#f8fafc',
+    color: '#0F172A',
     fontSize: 12,
     marginVertical: 8,
   },
@@ -1875,22 +1928,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
   },
   modalCancelText: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#475569',
     fontWeight: '600',
   },
   modalConfirmBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 6,
-    backgroundColor: '#0284c7',
+    backgroundColor: '#0284C7',
   },
   modalConfirmText: {
     fontSize: 12,
-    color: '#fff',
+    color: '#FFFFFF',
     fontWeight: '700',
   },
   healthRow: {
@@ -1899,11 +1954,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#F1F5F9',
   },
   healthLabel: {
     fontSize: 12,
-    color: '#cbd5e1',
+    color: '#334155',
+    fontWeight: '600',
   },
   healthBadge: {
     paddingHorizontal: 8,
@@ -1911,14 +1967,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   healthHealthy: {
-    backgroundColor: '#064e3b',
+    backgroundColor: '#059669',
   },
   healthDegraded: {
-    backgroundColor: '#7c2d12',
+    backgroundColor: '#D97706',
   },
   healthBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#fff',
+    color: '#FFFFFF',
   },
 });

@@ -18,7 +18,6 @@ export default function RoleSwitch({ currentRole }: RoleSwitchProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Dev switch</Text>
       <TouchableOpacity
         onPress={() =>
           router.replace(
@@ -29,15 +28,15 @@ export default function RoleSwitch({ currentRole }: RoleSwitchProps) {
         activeOpacity={0.85}
       >
         <View style={[styles.segment, currentRole === 'tourist' && styles.segmentActive]}>
-          <User size={14} color={currentRole === 'tourist' ? '#fff' : '#64748b'} />
+          <User size={13} color={currentRole === 'tourist' ? '#FFFFFF' : '#64748B'} />
           <Text style={[styles.segmentText, currentRole === 'tourist' && styles.segmentTextActive]}>
-            User
+            Traveler View
           </Text>
         </View>
         <View style={[styles.segment, currentRole === 'authority' && styles.segmentActive]}>
-          <ShieldAlert size={14} color={currentRole === 'authority' ? '#fff' : '#64748b'} />
+          <ShieldAlert size={13} color={currentRole === 'authority' ? '#FFFFFF' : '#64748B'} />
           <Text style={[styles.segmentText, currentRole === 'authority' && styles.segmentTextActive]}>
-            Authority
+            Authority Command
           </Text>
         </View>
       </TouchableOpacity>
@@ -47,42 +46,39 @@ export default function RoleSwitch({ currentRole }: RoleSwitchProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#64748b',
-    marginBottom: 6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    marginVertical: 2,
   },
   switch: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    padding: 4,
+    borderColor: '#E2E8F0',
+    padding: 3,
   },
   segment: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 8,
+    gap: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 7,
   },
   segmentActive: {
-    backgroundColor: '#1a365d',
+    backgroundColor: '#0284C7',
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 1,
   },
   segmentText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
   },
   segmentTextActive: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
 });

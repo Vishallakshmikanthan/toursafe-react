@@ -10,7 +10,7 @@ Features:
 import hashlib
 import json
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from pymongo import ASCENDING, DESCENDING, IndexModel
 
 from ...core import database as db_core

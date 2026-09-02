@@ -7,7 +7,7 @@ WebSocket events, and background worker jobs.
 import contextvars
 import time
 import uuid
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional, Set
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response

@@ -24,13 +24,11 @@ import {
   Lock,
   FileCheck,
   CheckCircle2,
-  Navigation,
-  ExternalLink,
   Cpu,
   Layers,
-  BarChart3,
-  Bell,
   Fingerprint,
+  Zap,
+  ChevronRight,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/authStore';
 import { ConnectionStatusBadge } from '@/components/ConnectionStatusBadge';
@@ -41,11 +39,41 @@ export default function TourSafeOfficialPortal() {
   const isCompact = width < 960;
   const isMobile = width < 640;
 
-  const { user, isAuthenticated, initializeAuth } = useAuthStore();
+  const { user, isAuthenticated, initializeAuth, setUser } = useAuthStore();
 
   useEffect(() => {
     initializeAuth();
   }, []);
+
+  const openAdmin = () => {
+    setUser({
+      id: 'usr_admin_mock',
+      email: 'admin@toursafe.gov',
+      full_name: 'Command Administrator',
+      role: 'authority',
+    });
+    router.push('/admin/(tabs)/dashboard');
+  };
+
+  const openTourist = () => {
+    setUser({
+      id: 'usr_tourist_mock',
+      email: 'tourist@toursafe.dev',
+      full_name: 'Priya Sharma (Tourist)',
+      role: 'tourist',
+    });
+    router.push('/tourist/(tabs)/dashboard');
+  };
+
+  const openResponder = () => {
+    setUser({
+      id: 'usr_responder_mock',
+      email: 'responder@toursafe.dev',
+      full_name: 'Tactical Unit Commander',
+      role: 'responder',
+    });
+    router.push('/responder');
+  };
 
   const getRoleDashboardPath = (role?: string) => {
     switch (role) {
@@ -61,41 +89,48 @@ export default function TourSafeOfficialPortal() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.container}>
-        {/* Government / Platform Header */}
+        {/* Clean Light Floating Navbar */}
         <View style={[styles.header, isMobile && styles.headerMobile]}>
           <View style={styles.brandRow}>
             <View style={styles.brandMark}>
-              <Shield size={24} color="#ffffff" />
+              <Shield size={22} color="#059669" />
             </View>
             <View>
               <View style={styles.brandTitleRow}>
                 <Text style={styles.brandTitle}>TourSafe</Text>
                 <View style={styles.govBadge}>
+                  <View style={styles.govDot} />
                   <Text style={styles.govBadgeText}>OFFICIAL B2G PLATFORM</Text>
                 </View>
               </View>
-              <Text style={styles.brandSubtitle}>
-                Integrated Tourist Safety, Realtime Telemetry & Emergency Command System
+              <Text style={styles.brandSubtitle} numberOfLines={1}>
+                Unified Tourist Safety & Tactical Response Platform
               </Text>
             </View>
           </View>
 
           <View style={[styles.headerActions, isMobile && styles.headerActionsMobile]}>
-            <ConnectionStatusBadge showLabel={true} allowNavigateDev={false} />
+            <ConnectionStatusBadge showLabel={!isMobile} allowNavigateDev={false} />
             {isAuthenticated && user ? (
               <TouchableOpacity
                 style={styles.activeUserButton}
-                onPress={() => router.push(getRoleDashboardPath(user.role) as any)}
+                onPress={() => router.push(getRoleDashboardPath(user.role) as never)}
                 accessibilityRole="button"
-                accessibilityLabel={`Open ${user.role} workspace for ${user.full_name || user.email}`}
+                accessibilityLabel={`Open ${user.role} workspace`}
               >
-                <User size={15} color="#0D7680" />
+                <View style={styles.userAvatar}>
+                  <User size={13} color="#FFFFFF" />
+                </View>
                 <Text style={styles.activeUserText} numberOfLines={1}>
-                  {user.full_name || user.email}
+                  {user.full_name?.split(' ')[0] || user.email?.split('@')[0]}
                 </Text>
-                <ArrowRight size={14} color="#0D7680" />
+                <ChevronRight size={14} color="#64748B" />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -104,266 +139,311 @@ export default function TourSafeOfficialPortal() {
                 accessibilityRole="button"
                 accessibilityLabel="Sign in to TourSafe Portal"
               >
-                <Lock size={14} color="#ffffff" />
+                <Lock size={13} color="#FFFFFF" />
                 <Text style={styles.loginButtonText}>Sign In</Text>
-                <ArrowRight size={14} color="#ffffff" />
+                <ArrowRight size={13} color="#FFFFFF" />
               </TouchableOpacity>
             )}
           </View>
         </View>
 
-        {/* Authenticated Active Session Banner */}
+        {/* Active Verified Session Bar */}
         {isAuthenticated && user && (
           <View style={styles.sessionBanner}>
             <View style={styles.sessionBannerLeft}>
-              <CheckCircle2 size={20} color="#046A38" />
-              <View>
+              <View style={styles.sessionIconBox}>
+                <CheckCircle2 size={16} color="#059669" />
+              </View>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.sessionBannerTitle}>Active Verified Session Found</Text>
-                <Text style={styles.sessionBannerSubtitle}>
-                  Logged in as <Text style={{ fontWeight: '700' }}>{user.full_name || user.email}</Text> ({user.role?.toUpperCase() || 'TOURIST'})
+                <Text style={styles.sessionBannerSubtitle} numberOfLines={1}>
+                  Authenticated as <Text style={styles.sessionHighlight}>{user.full_name || user.email}</Text> ({user.role?.toUpperCase() || 'TOURIST'})
                 </Text>
               </View>
             </View>
             <TouchableOpacity
               style={styles.sessionLaunchButton}
-              onPress={() => router.push(getRoleDashboardPath(user.role) as any)}
+              onPress={() => router.push(getRoleDashboardPath(user.role) as never)}
               accessibilityRole="button"
             >
               <Text style={styles.sessionLaunchText}>Enter Workspace</Text>
-              <ArrowRight size={14} color="#ffffff" />
+              <ArrowRight size={13} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Hero Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.heroHeader}>
-            <View style={styles.heroTagRow}>
-              <View style={styles.securityTag}>
-                <Lock size={12} color="#1A3C6E" />
-                <Text style={styles.securityTagText}>DPDP ACT 2023 & ISO 27001 COMPLIANT</Text>
-              </View>
-              <View style={styles.realtimeTag}>
-                <Radio size={12} color="#046A38" />
-                <Text style={styles.realtimeTagText}>50Hz REALTIME INFERENCE ENGINE</Text>
-              </View>
+        {/* Clean Light Hero Card */}
+        <View style={styles.heroCard}>
+          <View style={styles.heroBadgeRow}>
+            <View style={styles.heroChipEmerald}>
+              <Zap size={12} color="#059669" />
+              <Text style={styles.heroChipEmeraldText}>50Hz REAL-TIME SENSING</Text>
             </View>
-            <Text style={styles.heroTitle}>
-              Government-Grade Safety Intelligence & Rapid Emergency Response
-            </Text>
-            <Text style={styles.heroLead}>
-              TourSafe connects tourism authorities, emergency command centers, field tactical units, and travelers
-              into a unified, zero-trust safety network powered by geospatial intelligence and real-time motion anomaly detection.
-            </Text>
+            <View style={styles.heroChipIndigo}>
+              <Lock size={12} color="#4F46E5" />
+              <Text style={styles.heroChipIndigoText}>ZERO-TRUST ISO 27001</Text>
+            </View>
           </View>
-        </View>
 
-        {/* Three Primary Role Gateways */}
-        <View style={styles.gatewaysSection}>
-          <Text style={styles.sectionHeading}>OPERATIONAL WORKSPACES</Text>
-          <Text style={styles.sectionSubheading}>Select your authorized access portal to begin</Text>
+          <Text style={[styles.heroHeading, isMobile && styles.heroHeadingMobile]}>
+            Next-Gen Tourist Safety & Rapid Emergency Response
+          </Text>
 
-          <View style={[styles.gatewayGrid, isCompact && styles.gatewayGridCompact]}>
-            {/* Gateway 1: Authority Command Center */}
-            <View style={styles.gatewayCard}>
-              <View style={styles.gatewayCardHeader}>
-                <View style={[styles.gatewayIconBox, { backgroundColor: '#2B4C7E' }]}>
-                  <Building2 size={24} color="#ffffff" />
-                </View>
-                <View style={styles.gatewayBadge}>
-                  <Text style={styles.gatewayBadgeText}>COMMAND & CONTROL</Text>
-                </View>
-              </View>
-              <Text style={styles.gatewayTitle}>Authority Command Center</Text>
-              <Text style={styles.gatewayDescription}>
-                Real-time incident dispatch, multi-zone safety monitoring, tactical responder orchestration, and grounded AI operational intelligence.
-              </Text>
-              <View style={styles.featureList}>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#2B4C7E" />
-                  <Text style={styles.featureText}>Live multi-layer geospatial operations map</Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#2B4C7E" />
-                  <Text style={styles.featureText}>AI Copilot tactical query & action execution</Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#2B4C7E" />
-                  <Text style={styles.featureText}>E-FIR generation & legal audit governance</Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={[styles.gatewayButton, { backgroundColor: '#2B4C7E' }]}
-                onPress={() => router.push('/admin/(tabs)/dashboard')}
-                accessibilityRole="button"
-                accessibilityLabel="Enter Authority Command Center"
-              >
-                <Text style={styles.gatewayButtonText}>Launch Command Center</Text>
-                <ArrowRight size={16} color="#ffffff" />
-              </TouchableOpacity>
+          <Text style={styles.heroSubtext}>
+            TourSafe connects travelers, tourism authorities, and field tactical units into an intelligent,
+            motion-anomaly protected network with real-time geospatial safety and 1-tap deliberate emergency dispatch.
+          </Text>
+
+          {/* Quick Metrics Strip */}
+          <View style={[styles.metricsStrip, isMobile && styles.metricsStripMobile]}>
+            <View style={styles.metricItem}>
+              <Text style={styles.metricValue}>50 Hz</Text>
+              <Text style={styles.metricLabel}>Sensor AI Stream</Text>
             </View>
-
-            {/* Gateway 2: Tourist Safety Companion */}
-            <View style={styles.gatewayCard}>
-              <View style={styles.gatewayCardHeader}>
-                <View style={[styles.gatewayIconBox, { backgroundColor: '#059669' }]}>
-                  <User size={24} color="#ffffff" />
-                </View>
-                <View style={[styles.gatewayBadge, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
-                  <Text style={[styles.gatewayBadgeText, { color: '#059669' }]}>TRAVELER PORTAL</Text>
-                </View>
-              </View>
-              <Text style={styles.gatewayTitle}>Tourist Safety Companion</Text>
-              <Text style={styles.gatewayDescription}>
-                Traveler companion featuring continuous motion anomaly detection, verified digital credentials, hazard proximity alerts, and 1-touch SOS.
-              </Text>
-              <View style={styles.featureList}>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#059669" />
-                  <Text style={styles.featureText}>One-touch deliberate emergency SOS trigger</Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#059669" />
-                  <Text style={styles.featureText}>Verifiable Digital Tourist Credential (QR / KYC)</Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#059669" />
-                  <Text style={styles.featureText}>Granular privacy & sovereign consent center</Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={[styles.gatewayButton, { backgroundColor: '#059669' }]}
-                onPress={() => router.push('/tourist/(tabs)/dashboard')}
-                accessibilityRole="button"
-                accessibilityLabel="Open Tourist Safety Companion"
-              >
-                <Text style={styles.gatewayButtonText}>Open Tourist Companion</Text>
-                <ArrowRight size={16} color="#ffffff" />
-              </TouchableOpacity>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
+              <Text style={styles.metricValue}>&lt; 50 ms</Text>
+              <Text style={styles.metricLabel}>Dispatch Latency</Text>
             </View>
-
-            {/* Gateway 3: Tactical Field Responder */}
-            <View style={styles.gatewayCard}>
-              <View style={styles.gatewayCardHeader}>
-                <View style={[styles.gatewayIconBox, { backgroundColor: '#FF6B00' }]}>
-                  <Users size={24} color="#ffffff" />
-                </View>
-                <View style={[styles.gatewayBadge, { backgroundColor: '#FFF7ED', borderColor: '#FFEDD5' }]}>
-                  <Text style={[styles.gatewayBadgeText, { color: '#C2410C' }]}>TACTICAL FIELD UNIT</Text>
-                </View>
-              </View>
-              <Text style={styles.gatewayTitle}>Field Responder Operations</Text>
-              <Text style={styles.gatewayDescription}>
-                Mission dispatch terminal for police, forest rangers, and medical teams with GPS navigation, on-scene assessment, and field notes sync.
-              </Text>
-              <View style={styles.featureList}>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#C2410C" />
-                  <Text style={styles.featureText}>Real-time mission assignment & GPS dispatch</Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#C2410C" />
-                  <Text style={styles.featureText}>On-scene triage assessment & multi-unit handover</Text>
-                </View>
-                <View style={styles.featureItem}>
-                  <CheckCircle2 size={14} color="#C2410C" />
-                  <Text style={styles.featureText}>Offline-resilient field notes & incident timeline</Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={[styles.gatewayButton, { backgroundColor: '#FF6B00' }]}
-                onPress={() => router.push('/responder')}
-                accessibilityRole="button"
-                accessibilityLabel="Access Field Responder Operations"
-              >
-                <Text style={styles.gatewayButtonText}>Access Field Operations</Text>
-                <ArrowRight size={16} color="#ffffff" />
-              </TouchableOpacity>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
+              <Text style={styles.metricValue}>100%</Text>
+              <Text style={styles.metricLabel}>DPDP Sovereign</Text>
+            </View>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
+              <Text style={styles.metricValue}>Multi-Zone</Text>
+              <Text style={styles.metricLabel}>Live Geofencing</Text>
             </View>
           </View>
         </View>
 
-        {/* System Integrity & Subsystems Overview */}
-        <View style={styles.statusSection}>
-          <Text style={styles.sectionHeading}>SYSTEM INTEGRITY & SUBSYSTEM STATUS</Text>
-          <Text style={styles.sectionSubheading}>Authoritative core engine verification</Text>
+        {/* Operational Workspaces Section */}
+        <View style={styles.sectionHeaderRow}>
+          <View>
+            <Text style={styles.sectionOverline}>SELECT ROLE GATEWAY</Text>
+            <Text style={styles.sectionTitle}>Operational Workspaces</Text>
+          </View>
+        </View>
+
+        <View style={[styles.gatewayGrid, isCompact && styles.gatewayGridCompact]}>
+          {/* Card 1: Authority Command Center */}
+          <View style={[styles.gatewayCard, styles.gatewayCardAdmin]}>
+            <View style={styles.gatewayHeader}>
+              <View style={[styles.gatewayIconBadge, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
+                <Building2 size={22} color="#2563EB" />
+              </View>
+              <View style={[styles.roleTag, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
+                <Text style={[styles.roleTagText, { color: '#1D4ED8' }]}>COMMAND CENTER</Text>
+              </View>
+            </View>
+
+            <Text style={styles.cardTitle}>Authority Command</Text>
+            <Text style={styles.cardDesc}>
+              Real-time incident dispatch, multi-layer GIS safety maps, tactical responder coordination, and grounded AI operational intelligence.
+            </Text>
+
+            <View style={styles.featureList}>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#2563EB" />
+                <Text style={styles.featureText}>Live multi-layer geospatial operations map</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#2563EB" />
+                <Text style={styles.featureText}>AI Copilot tactical query & action execution</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#2563EB" />
+                <Text style={styles.featureText}>E-FIR generation & legal audit governance</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#2563EB' }]}
+              onPress={openAdmin}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+            >
+              <Text style={styles.actionBtnText}>Launch Command Center</Text>
+              <ArrowRight size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Card 2: Tourist Safety Companion */}
+          <View style={[styles.gatewayCard, styles.gatewayCardTourist]}>
+            <View style={styles.featuredBadgeContainer}>
+              <Sparkles size={11} color="#059669" />
+              <Text style={styles.featuredBadgeText}>RECOMMENDED</Text>
+            </View>
+
+            <View style={styles.gatewayHeader}>
+              <View style={[styles.gatewayIconBadge, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
+                <ShieldCheck size={22} color="#059669" />
+              </View>
+              <View style={[styles.roleTag, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
+                <Text style={[styles.roleTagText, { color: '#047857' }]}>TRAVELER APP</Text>
+              </View>
+            </View>
+
+            <Text style={styles.cardTitle}>Tourist Safety Companion</Text>
+            <Text style={styles.cardDesc}>
+              Traveler companion featuring continuous motion anomaly detection, verified digital credentials, hazard alerts, and 1-touch SOS.
+            </Text>
+
+            <View style={styles.featureList}>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#059669" />
+                <Text style={styles.featureText}>One-touch deliberate emergency SOS trigger</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#059669" />
+                <Text style={styles.featureText}>Verifiable Digital Tourist Credential (QR / KYC)</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#059669" />
+                <Text style={styles.featureText}>Safe Corridors & high-risk zone breach alert</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#059669' }]}
+              onPress={openTourist}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+            >
+              <Text style={styles.actionBtnText}>Open Tourist Companion</Text>
+              <ArrowRight size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Card 3: Tactical Field Responder */}
+          <View style={[styles.gatewayCard, styles.gatewayCardResponder]}>
+            <View style={styles.gatewayHeader}>
+              <View style={[styles.gatewayIconBadge, { backgroundColor: '#FFF7ED', borderColor: '#FFEDD5' }]}>
+                <Users size={22} color="#EA580C" />
+              </View>
+              <View style={[styles.roleTag, { backgroundColor: '#FFF7ED', borderColor: '#FFEDD5' }]}>
+                <Text style={[styles.roleTagText, { color: '#C2410C' }]}>TACTICAL UNIT</Text>
+              </View>
+            </View>
+
+            <Text style={styles.cardTitle}>Field Operations</Text>
+            <Text style={styles.cardDesc}>
+              Mission dispatch terminal for police, forest rangers, and medical teams with GPS navigation, on-scene assessment, and field notes sync.
+            </Text>
+
+            <View style={styles.featureList}>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#EA580C" />
+                <Text style={styles.featureText}>Real-time mission assignment & GPS dispatch</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#EA580C" />
+                <Text style={styles.featureText}>On-scene triage assessment & unit handover</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <CheckCircle2 size={14} color="#EA580C" />
+                <Text style={styles.featureText}>Offline-resilient field notes & timeline</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: '#EA580C' }]}
+              onPress={openResponder}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+            >
+              <Text style={styles.actionBtnText}>Access Field Operations</Text>
+              <ArrowRight size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Clean Subsystem Architecture Grid */}
+        <View style={styles.systemSection}>
+          <Text style={styles.sectionOverline}>CORE ENGINE INTEGRITY</Text>
+          <Text style={styles.sectionTitle}>Subsystem Live Status</Text>
 
           <View style={[styles.subsystemGrid, isCompact && styles.subsystemGridCompact]}>
             <View style={styles.subsystemCard}>
-              <View style={styles.subsystemHeader}>
-                <Cpu size={18} color="#2B4C7E" />
-                <View style={styles.statusPillActive}>
-                  <Text style={styles.statusPillText}>OPERATIONAL</Text>
+              <View style={styles.subsystemTop}>
+                <Cpu size={18} color="#2563EB" />
+                <View style={[styles.activePill, { backgroundColor: '#EFF6FF' }]}>
+                  <View style={[styles.liveDot, { backgroundColor: '#2563EB' }]} />
+                  <Text style={[styles.activePillText, { color: '#1D4ED8' }]}>ACTIVE</Text>
                 </View>
               </View>
-              <Text style={styles.subsystemName}>FastAPI Core Gateway</Text>
-              <Text style={styles.subsystemDetail}>
+              <Text style={styles.subsystemTitle}>FastAPI Core Gateway</Text>
+              <Text style={styles.subsystemDesc}>
                 Zero-trust JWT authentication, role-based access control, and audited microservice endpoints.
               </Text>
             </View>
 
             <View style={styles.subsystemCard}>
-              <View style={styles.subsystemHeader}>
+              <View style={styles.subsystemTop}>
                 <Radio size={18} color="#059669" />
-                <View style={styles.statusPillActive}>
-                  <Text style={styles.statusPillText}>LIVE BROADCAST</Text>
+                <View style={[styles.activePill, { backgroundColor: '#ECFDF5' }]}>
+                  <View style={[styles.liveDot, { backgroundColor: '#059669' }]} />
+                  <Text style={[styles.activePillText, { color: '#047857' }]}>STREAMING</Text>
                 </View>
               </View>
-              <Text style={styles.subsystemName}>Realtime Event Bus</Text>
-              <Text style={styles.subsystemDetail}>
-                Sub-50ms WebSocket telemetry streaming with fallback event reconciliation and heartbeat monitoring.
+              <Text style={styles.subsystemTitle}>Realtime Event Bus</Text>
+              <Text style={styles.subsystemDesc}>
+                Sub-50ms WebSocket telemetry streaming with fallback event reconciliation and heartbeat.
               </Text>
             </View>
 
             <View style={styles.subsystemCard}>
-              <View style={styles.subsystemHeader}>
-                <Layers size={18} color="#FF6B00" />
-                <View style={styles.statusPillActive}>
-                  <Text style={styles.statusPillText}>CALIBRATED</Text>
+              <View style={styles.subsystemTop}>
+                <Layers size={18} color="#EA580C" />
+                <View style={[styles.activePill, { backgroundColor: '#FFF7ED' }]}>
+                  <View style={[styles.liveDot, { backgroundColor: '#EA580C' }]} />
+                  <Text style={[styles.activePillText, { color: '#C2410C' }]}>50Hz CALIBRATED</Text>
                 </View>
               </View>
-              <Text style={styles.subsystemName}>LSTM Motion AI</Text>
-              <Text style={styles.subsystemDetail}>
-                High-frequency 50Hz accelerometer & gyroscope anomaly inference with calibrated confidence scoring.
+              <Text style={styles.subsystemTitle}>LSTM Motion Anomaly AI</Text>
+              <Text style={styles.subsystemDesc}>
+                High-frequency 50Hz accelerometer & gyroscope anomaly inference with calibrated confidence.
               </Text>
             </View>
 
             <View style={styles.subsystemCard}>
-              <View style={styles.subsystemHeader}>
-                <MapPin size={18} color="#0891B2" />
-                <View style={styles.statusPillActive}>
-                  <Text style={styles.statusPillText}>GEO-POLYGON ACTIVE</Text>
+              <View style={styles.subsystemTop}>
+                <MapPin size={18} color="#7C3AED" />
+                <View style={[styles.activePill, { backgroundColor: '#F5F3FF' }]}>
+                  <View style={[styles.liveDot, { backgroundColor: '#7C3AED' }]} />
+                  <Text style={[styles.activePillText, { color: '#6D28D9' }]}>POLYGONS LIVE</Text>
                 </View>
               </View>
-              <Text style={styles.subsystemName}>Spatial Geofencing</Text>
-              <Text style={styles.subsystemDetail}>
-                Dynamic risk polygon intersection, hazard buffer zones, and instant boundary breach notification.
+              <Text style={styles.subsystemTitle}>Spatial Geofencing</Text>
+              <Text style={styles.subsystemDesc}>
+                Dynamic risk polygon intersection, hazard buffer zones, and instant boundary notifications.
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Footer */}
+        {/* Clean Footer */}
         <View style={styles.footer}>
-          <View style={styles.footerBrand}>
-            <Shield size={20} color="#2B4C7E" />
-            <Text style={styles.footerTitle}>TourSafe Sovereign Safety Infrastructure</Text>
+          <View style={styles.footerTop}>
+            <Shield size={18} color="#059669" />
+            <Text style={styles.footerBrand}>TourSafe Sovereign Safety Infrastructure</Text>
           </View>
           <Text style={styles.footerCopyright}>
             Official National Tourism Safety & Emergency Management Network. All rights reserved.
           </Text>
-          <View style={styles.footerBadges}>
-            <View style={styles.footerBadge}>
-              <Lock size={12} color="#64748B" />
-              <Text style={styles.footerBadgeText}>TLS 1.3 / AES-256</Text>
+          <View style={styles.footerPills}>
+            <View style={styles.footerPill}>
+              <Lock size={11} color="#64748B" />
+              <Text style={styles.footerPillText}>TLS 1.3 / AES-256</Text>
             </View>
-            <View style={styles.footerBadge}>
-              <FileCheck size={12} color="#64748B" />
-              <Text style={styles.footerBadgeText}>DPDP Act 2023</Text>
+            <View style={styles.footerPill}>
+              <FileCheck size={11} color="#64748B" />
+              <Text style={styles.footerPillText}>DPDP Act 2023</Text>
             </View>
-            <View style={styles.footerBadge}>
-              <Fingerprint size={12} color="#64748B" />
-              <Text style={styles.footerBadgeText}>Zero-Trust RBAC</Text>
+            <View style={styles.footerPill}>
+              <Fingerprint size={11} color="#64748B" />
+              <Text style={styles.footerPillText}>Zero-Trust RBAC</Text>
             </View>
           </View>
         </View>
@@ -378,13 +458,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   content: {
-    paddingBottom: 48,
+    paddingBottom: 60,
   },
   container: {
     maxWidth: 1200,
     width: '100%',
     alignSelf: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 16,
   },
   header: {
@@ -393,21 +473,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   headerMobile: {
     flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: 12,
+    alignItems: 'stretch',
+    gap: 14,
+    paddingHorizontal: 16,
   },
   brandRow: {
     flexDirection: 'row',
@@ -417,8 +498,10 @@ const styles = StyleSheet.create({
   brandMark: {
     width: 40,
     height: 40,
-    borderRadius: 10,
-    backgroundColor: '#2B4C7E',
+    borderRadius: 12,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -428,34 +511,44 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   brandTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#0F172A',
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
   govBadge: {
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
+    borderColor: '#A7F3D0',
+  },
+  govDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#059669',
   },
   govBadgeText: {
     fontSize: 9,
-    fontWeight: '700',
-    color: '#1D4ED8',
-    letterSpacing: 0.5,
+    fontWeight: '800',
+    color: '#047857',
+    letterSpacing: 0.6,
   },
   brandSubtitle: {
     fontSize: 12,
     color: '#64748B',
     marginTop: 2,
+    fontWeight: '500',
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
   headerActionsMobile: {
     width: '100%',
@@ -464,34 +557,44 @@ const styles = StyleSheet.create({
   activeUserButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 8,
-    backgroundColor: '#F0FDFA',
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: '#CCFBF1',
-    maxWidth: 180,
+    borderColor: '#E2E8F0',
+  },
+  userAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#059669',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   activeUserText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#0D7680',
-    flexShrink: 1,
+    fontWeight: '700',
+    color: '#0F172A',
   },
   loginButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#2B4C7E',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 10,
+    backgroundColor: '#2563EB',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   loginButtonText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#ffffff',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   sessionBanner: {
     flexDirection: 'row',
@@ -500,15 +603,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4',
     borderWidth: 1,
     borderColor: '#BBF7D0',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 14,
     marginBottom: 20,
+    gap: 12,
   },
   sessionBannerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     flex: 1,
+  },
+  sessionIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#DCFCE7',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sessionBannerTitle: {
     fontSize: 13,
@@ -520,161 +632,240 @@ const styles = StyleSheet.create({
     color: '#15803D',
     marginTop: 1,
   },
+  sessionHighlight: {
+    color: '#0F172A',
+    fontWeight: '800',
+  },
   sessionLaunchButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#166534',
+    backgroundColor: '#059669',
     paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 8,
   },
   sessionLaunchText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#ffffff',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
-  heroSection: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
+  heroCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    padding: 24,
+    padding: 28,
     marginBottom: 28,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
   },
-  heroHeader: {
-    gap: 10,
-  },
-  heroTagRow: {
+  heroBadgeRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 14,
   },
-  securityTag: {
+  heroChipEmerald: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    gap: 6,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: '#A7F3D0',
   },
-  securityTagText: {
+  heroChipEmeraldText: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#2563EB',
-    letterSpacing: 0.4,
+    fontWeight: '800',
+    color: '#047857',
+    letterSpacing: 0.5,
   },
-  realtimeTag: {
+  heroChipIndigo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#F0FDF4',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    gap: 6,
+    backgroundColor: '#EEF2FF',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#DCFCE7',
+    borderColor: '#C7D2FE',
   },
-  realtimeTagText: {
+  heroChipIndigoText: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#15803D',
-    letterSpacing: 0.4,
+    fontWeight: '800',
+    color: '#4338CA',
+    letterSpacing: 0.5,
   },
-  heroTitle: {
-    fontSize: 24,
+  heroHeading: {
+    fontSize: 30,
     fontWeight: '800',
     color: '#0F172A',
-    lineHeight: 32,
-    letterSpacing: -0.5,
+    lineHeight: 38,
+    letterSpacing: -0.6,
+    marginBottom: 12,
   },
-  heroLead: {
-    fontSize: 14,
+  heroHeadingMobile: {
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  heroSubtext: {
+    fontSize: 15,
     color: '#475569',
-    lineHeight: 22,
+    lineHeight: 24,
+    marginBottom: 24,
   },
-  gatewaysSection: {
-    marginBottom: 32,
+  metricsStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
-  sectionHeading: {
+  metricsStripMobile: {
+    flexDirection: 'column',
+    gap: 14,
+    alignItems: 'stretch',
+  },
+  metricItem: {
+    alignItems: 'center',
+  },
+  metricValue: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.3,
+  },
+  metricLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  metricDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: '#E2E8F0',
+  },
+  sectionHeaderRow: {
+    marginBottom: 16,
+  },
+  sectionOverline: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#64748B',
-    letterSpacing: 1,
-    marginBottom: 2,
+    color: '#059669',
+    letterSpacing: 1.2,
+    marginBottom: 4,
   },
-  sectionSubheading: {
-    fontSize: 14,
-    color: '#334155',
-    marginBottom: 16,
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.4,
   },
   gatewayGrid: {
     flexDirection: 'row',
     gap: 16,
+    marginBottom: 32,
   },
   gatewayGridCompact: {
     flexDirection: 'column',
   },
   gatewayCard: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    padding: 20,
+    padding: 22,
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    position: 'relative',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  gatewayCardHeader: {
+  gatewayCardAdmin: {
+    borderColor: '#DBEAFE',
+  },
+  gatewayCardTourist: {
+    borderColor: '#A7F3D0',
+    backgroundColor: '#FAFCFB',
+  },
+  gatewayCardResponder: {
+    borderColor: '#FFEDD5',
+  },
+  featuredBadgeContainer: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 14,
+    gap: 4,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
   },
-  gatewayIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+  featuredBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#047857',
+    letterSpacing: 0.5,
+  },
+  gatewayHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
+  gatewayIconBadge: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gatewayBadge: {
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    paddingHorizontal: 7,
+  roleTag: {
+    paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
+    borderWidth: 1,
   },
-  gatewayBadgeText: {
+  roleTagText: {
     fontSize: 9,
-    fontWeight: '700',
-    color: '#1E40AF',
-    letterSpacing: 0.4,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
-  gatewayTitle: {
-    fontSize: 17,
-    fontWeight: '700',
+  cardTitle: {
+    fontSize: 19,
+    fontWeight: '800',
     color: '#0F172A',
     marginBottom: 6,
   },
-  gatewayDescription: {
-    fontSize: 12,
+  cardDesc: {
+    fontSize: 13,
     color: '#475569',
-    lineHeight: 18,
-    marginBottom: 16,
+    lineHeight: 20,
+    marginBottom: 18,
   },
   featureList: {
-    gap: 8,
-    marginBottom: 20,
+    gap: 10,
+    marginBottom: 22,
   },
   featureItem: {
     flexDirection: 'row',
@@ -684,107 +875,133 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: 12,
     color: '#334155',
+    fontWeight: '500',
     flex: 1,
   },
-  gatewayButton: {
+  actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 11,
-    borderRadius: 8,
+    paddingVertical: 13,
+    borderRadius: 12,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  gatewayButtonText: {
+  actionBtnText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#ffffff',
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
-  statusSection: {
+  systemSection: {
     marginBottom: 32,
   },
   subsystemGrid: {
     flexDirection: 'row',
-    gap: 14,
+    gap: 12,
+    marginTop: 14,
   },
   subsystemGridCompact: {
     flexDirection: 'column',
   },
   subsystemCard: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    padding: 16,
+    padding: 18,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
   },
-  subsystemHeader: {
+  subsystemTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  statusPillActive: {
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+  activePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  statusPillText: {
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  activePillText: {
     fontSize: 8,
-    fontWeight: '700',
-    color: '#15803D',
-    letterSpacing: 0.4,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
-  subsystemName: {
-    fontSize: 13,
-    fontWeight: '700',
+  subsystemTitle: {
+    fontSize: 14,
+    fontWeight: '800',
     color: '#0F172A',
     marginBottom: 4,
   },
-  subsystemDetail: {
-    fontSize: 11,
+  subsystemDesc: {
+    fontSize: 12,
     color: '#64748B',
-    lineHeight: 16,
+    lineHeight: 18,
   },
   footer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    padding: 20,
+    padding: 22,
+    alignItems: 'center',
+    gap: 10,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 6,
+  },
+  footerTop: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   footerBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  footerTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#2B4C7E',
+    color: '#0F172A',
   },
   footerCopyright: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#64748B',
     textAlign: 'center',
   },
-  footerBadges: {
+  footerPills: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 6,
+    gap: 10,
+    marginTop: 4,
   },
-  footerBadge: {
+  footerPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  footerBadgeText: {
-    fontSize: 10,
+  footerPillText: {
+    fontSize: 11,
     color: '#64748B',
+    fontWeight: '600',
   },
 });

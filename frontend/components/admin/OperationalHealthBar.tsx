@@ -61,7 +61,7 @@ export const OperationalHealthBar: React.FC<Props> = ({ onOpenDetailedMetrics })
       <View style={styles.rightRow}>
         {goldenSignals && (
           <View style={styles.metricBadge}>
-            <Activity size={12} color="#38BDF8" />
+            <Activity size={12} color="#0284C7" />
             <Text style={styles.metricLabel}>API p95:</Text>
             <Text style={styles.metricValue}>{goldenSignals.latency_ms.p95}ms</Text>
           </View>
@@ -73,7 +73,7 @@ export const OperationalHealthBar: React.FC<Props> = ({ onOpenDetailedMetrics })
             accessibilityRole="button"
             accessibilityLabel="Open SRE Health Metrics"
           >
-            <Cpu size={12} color="#E2E8F0" />
+            <Cpu size={12} color="#334155" />
             <Text style={styles.detailsButtonText}>SRE Health</Text>
           </TouchableOpacity>
         )}
@@ -87,15 +87,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FFFFFF',
     borderLeftWidth: 4,
     paddingVertical: 10,
     paddingHorizontal: 16,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 8,
+    marginHorizontal: 0,
+    marginBottom: 14,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   leftRow: {
     flexDirection: 'row',
@@ -109,12 +116,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   statusText: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '700',
   },
   reasonText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 11,
     marginTop: 2,
   },
@@ -126,32 +133,37 @@ const styles = StyleSheet.create({
   metricBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 6,
     gap: 4,
   },
   metricLabel: {
-    color: '#64748B',
-    fontSize: 11,
-  },
-  metricValue: {
-    color: '#38BDF8',
+    color: '#0369A1',
     fontSize: 11,
     fontWeight: '600',
+  },
+  metricValue: {
+    color: '#0284C7',
+    fontSize: 11,
+    fontWeight: '700',
   },
   detailsButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#334155',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: 6,
   },
   detailsButtonText: {
-    color: '#E2E8F0',
+    color: '#334155',
     fontSize: 11,
     fontWeight: '600',
   },

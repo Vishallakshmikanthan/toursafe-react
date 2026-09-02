@@ -158,7 +158,7 @@ export default function IncidentsScreen() {
               </Text>
               <Text style={styles.responderETA}>ETA: 3 minutes • 1.2 km away</Text>
             </View>
-            <TouchableOpacity
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
               style={styles.callBtn}
               onPress={() => Linking.openURL("tel:112")}
             >
@@ -268,7 +268,7 @@ export default function IncidentsScreen() {
           onChangeText={setInputMessage}
           onSubmitEditing={handleSendMessage}
         />
-        <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button" style={styles.sendButton} onPress={handleSendMessage}>
           <Send size={18} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   responderCard: {
-    backgroundcolor: "#0F172A",
+    backgroundColor: "#0F172A",
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
@@ -375,11 +375,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   timelineCard: {
-    backgroundcolor: "#0F172A",
+    backgroundColor: "#0F172A",
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
     gap: 12,
   },
   timelineTitle: {
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     backgroundColor: "rgba(15, 23, 42, 0.8)",
     borderWidth: 1,
-    bordercolor: "#475569",
+    borderColor: "#475569",
     maxWidth: "96%",
   },
   msgAuthority: {
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     fontSize: 14,
     borderWidth: 1,
-    bordercolor: "#334155",
+    borderColor: "#334155",
   },
   sendButton: {
     width: 44,

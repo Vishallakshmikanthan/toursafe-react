@@ -10,7 +10,9 @@
     "splash": {
       "backgroundColor": "#1A3C6E"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.toursafe.mobile",
@@ -27,7 +29,8 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "RECORD_AUDIO",
-        "VIBRATE"
+        "VIBRATE",
+        "INTERNET"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#1A3C6E"
@@ -51,7 +54,16 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "4c2bc137-bb72-4989-95ab-ed7ead23406f"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/4c2bc137-bb72-4989-95ab-ed7ead23406f"
     }
   }
 }

@@ -4,7 +4,7 @@ import hashlib
 import hmac
 import json
 import logging
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 import uuid
 
 from ...core import database as db_core

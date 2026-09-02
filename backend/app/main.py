@@ -80,8 +80,16 @@ async def lifespan(app: FastAPI):
     # Startup
     try:
         db = db_core.get_database()
-        await db.command("ping")
-        print("[OK] MongoDB connection verified on startup")
+        try:
+            await db.command("ping")
+            print("[OK] MongoDB connection verified on startup")
+        except Exception as conn_err:
+            if settings.environment.lower() not in ("production", "prod"):
+                db_core.enable_fallback_database()
+                db = db_core.get_database()
+                print(f"[INFO] Using in-memory fallback database for local development: {conn_err}")
+            else:
+                raise conn_err
         await db_core.init_db_indexes(db)
         await safety_repository.init_indexes()
         await dataset_registry.init_indexes()

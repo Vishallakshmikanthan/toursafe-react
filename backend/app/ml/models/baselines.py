@@ -8,8 +8,12 @@ Provides benchmark baselines for anomaly detection comparison:
 
 from typing import Any, Dict, List, Optional
 import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.ensemble import IsolationForest
+try:
+    from sklearn.decomposition import PCA
+    from sklearn.ensemble import IsolationForest
+except Exception:
+    PCA = None
+    IsolationForest = None
 
 
 class KinematicPeakDetector:

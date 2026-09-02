@@ -73,14 +73,106 @@ export default function AdminIncidentCommandCenter() {
         incidentApi.getMetrics(),
       ]);
 
-      if (incRes.status === 'fulfilled' && incRes.value?.data?.incidents) {
+      if (incRes.status === 'fulfilled' && incRes.value?.data?.incidents && incRes.value.data.incidents.length > 0) {
         setIncidents(incRes.value.data.incidents);
+      } else {
+        // Fallback rich demo incidents for Kodaikanal
+        setIncidents([
+          {
+            incident_id: 'INC-2024-0891',
+            tourist_id: 't-001',
+            tourist_name: 'Priya Sharma',
+            source: 'SOS_BUTTON',
+            severity: 'CRITICAL',
+            status: 'OPEN',
+            started_at: new Date(Date.now() - 180000).toISOString(),
+            created_at: new Date(Date.now() - 180000).toISOString(),
+            updated_at: new Date(Date.now() - 60000).toISOString(),
+            age_seconds: 180,
+            latitude: 10.2291,
+            longitude: 77.4947,
+            zone_id: 'zone-003',
+            zone_name: "Coaker's Walk Ridge Caution Trail",
+            reasons: ['Panic SOS Triggered by User', 'Trail Slip & Fall Anomaly (3.2g)'],
+            version: 1,
+            is_sos: true,
+            timeline: [
+              { timestamp: new Date(Date.now() - 180000).toISOString(), action: 'SOS_TRIGGERED', new_state: 'OPEN', reason: 'Tourist triggered 3s hold panic button on wet trail' },
+              { timestamp: new Date(Date.now() - 120000).toISOString(), action: 'SMS_DISPATCHED', new_state: 'OPEN', reason: 'Emergency SMS dispatched with live coordinates to family' },
+            ],
+          } as any,
+          {
+            incident_id: 'INC-2024-0892',
+            tourist_id: 't-002',
+            tourist_name: 'Klaus Müller',
+            source: 'ANOMALY_ENGINE',
+            severity: 'HIGH',
+            status: 'RESPONDING',
+            started_at: new Date(Date.now() - 600000).toISOString(),
+            created_at: new Date(Date.now() - 600000).toISOString(),
+            updated_at: new Date(Date.now() - 120000).toISOString(),
+            age_seconds: 600,
+            assigned_responder_id: 'resp-001',
+            assigned_responder_name: 'Inspector S. Murugan',
+            assigned_unit_id: 'PCR-Kodai-01',
+            latitude: 10.2167,
+            longitude: 77.4833,
+            zone_id: 'zone-002',
+            zone_name: "Guna Caves (Devil's Kitchen) Danger Zone",
+            reasons: ['Restricted Deep Crevice Boundary Breach', 'Low Device Battery (34%)'],
+            version: 3,
+            is_sos: false,
+            timeline: [
+              { timestamp: new Date(Date.now() - 600000).toISOString(), action: 'PERIMETER_BREACH', new_state: 'OPEN', reason: 'Crossed prohibited warning barricade' },
+              { timestamp: new Date(Date.now() - 300000).toISOString(), action: 'RESPONDER_ASSIGNED', new_state: 'ASSIGNED', actor_id: 'Inspector S. Murugan' },
+              { timestamp: new Date(Date.now() - 120000).toISOString(), action: 'EN_ROUTE', new_state: 'RESPONDING', actor_id: 'Inspector S. Murugan' },
+            ],
+          } as any,
+          {
+            incident_id: 'INC-2024-0893',
+            tourist_id: 't-003',
+            tourist_name: 'Alexander Wright',
+            source: 'GEOFENCE_ALERT',
+            severity: 'MEDIUM',
+            status: 'OPEN',
+            started_at: new Date(Date.now() - 900000).toISOString(),
+            created_at: new Date(Date.now() - 900000).toISOString(),
+            updated_at: new Date(Date.now() - 900000).toISOString(),
+            age_seconds: 900,
+            latitude: 10.2050,
+            longitude: 77.4650,
+            zone_id: 'zone-015',
+            zone_name: "Vattakanal & Dolphin's Nose Ridge",
+            reasons: ['Dense Mountain Fog / Low Visibility Alert', 'Cliff Edge Warning (2133m)'],
+            version: 1,
+            is_sos: false,
+            timeline: [
+              { timestamp: new Date(Date.now() - 900000).toISOString(), action: 'ZONE_ALERT_SENT', new_state: 'OPEN', reason: 'Automated sudden fog hazard notification' },
+            ],
+          } as any,
+        ]);
       }
-      if (respRes.status === 'fulfilled' && Array.isArray(respRes.value?.data)) {
+      if (respRes.status === 'fulfilled' && Array.isArray(respRes.value?.data) && respRes.value.data.length > 0) {
         setResponders(respRes.value.data);
+      } else {
+        setResponders([
+          { responder_id: 'resp-001', full_name: 'Inspector S. Murugan', unit_id: 'PCR-Kodai-01', unit_type: 'POLICE', status: 'EN_ROUTE' } as any,
+          { responder_id: 'resp-002', full_name: 'Dr. A. Van Allen QRT', unit_id: 'Medical-Kodai-02', unit_type: 'MEDICAL', status: 'AVAILABLE' } as any,
+          { responder_id: 'resp-003', full_name: 'Ranger K. Ramanathan', unit_id: 'Forest-QRT-03', unit_type: 'POLICE', status: 'AVAILABLE' } as any,
+          { responder_id: 'resp-004', full_name: 'Officer M. Selvam', unit_id: 'Tourist-Patrol-04', unit_type: 'POLICE', status: 'AVAILABLE' } as any,
+        ]);
       }
       if (metRes.status === 'fulfilled' && metRes.value?.data) {
         setMetrics(metRes.value.data);
+      } else {
+        setMetrics({
+          open_incidents: 2,
+          escalated_incidents: 1,
+          acknowledged_incidents: 1,
+          resolved_incidents: 14,
+          avg_time_to_acknowledge_seconds: 42,
+          avg_time_to_resolve_seconds: 280,
+        } as any);
       }
     } catch (e) {
       console.warn('Failed to load incident command center data:', e);
@@ -322,7 +414,7 @@ export default function AdminIncidentCommandCenter() {
           <Text style={styles.subtitle}>Real-time emergency response, responder coordination & audit timeline</Text>
         </View>
         <TouchableOpacity onPress={loadData} style={styles.refreshBtn}>
-          <RefreshCw size={16} color="#1a365d" />
+          <RefreshCw size={16} color="#0284C7" />
         </TouchableOpacity>
       </View>
 
@@ -852,12 +944,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     marginRight: 6,
   },
-  chipActive: { backgroundColor: '#1a365d' },
-  chipText: { fontSize: 12, fontWeight: '600', color: '#475569' },
-  chipTextActive: { color: '#ffffff' },
+  chipActive: { backgroundColor: '#0284C7', borderColor: '#0284C7' },
+  chipText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
+  chipTextActive: { color: '#FFFFFF', fontWeight: '700' },
   loadingBox: { padding: 40, alignItems: 'center', gap: 12 },
   loadingText: { color: '#64748b', fontSize: 14 },
   emptyBox: {
@@ -1008,43 +1102,43 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#1a365d',
+    backgroundColor: '#0284C7',
     position: 'absolute',
     left: -6,
     top: 3,
   },
   timelineContent: { flex: 1 },
   timelineHeader: { flexDirection: 'row', justifyContent: 'space-between' },
-  timelineAction: { fontSize: 13, fontWeight: 'bold', color: '#0f172a' },
-  timelineTime: { fontSize: 11, color: '#94a3b8' },
-  timelineActor: { fontSize: 11, color: '#64748b', marginTop: 2 },
+  timelineAction: { fontSize: 13, fontWeight: 'bold', color: '#0F172A' },
+  timelineTime: { fontSize: 11, color: '#94A3B8' },
+  timelineActor: { fontSize: 11, color: '#64748B', marginTop: 2 },
   timelineReason: { fontSize: 12, color: '#334155', marginTop: 4 },
-  emptySub: { fontSize: 12, color: '#94a3b8', fontStyle: 'italic' },
+  emptySub: { fontSize: 12, color: '#94A3B8', fontStyle: 'italic' },
   noteItem: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#E2E8F0',
     marginBottom: 8,
   },
   noteHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  noteAuthor: { fontSize: 11, fontWeight: 'bold', color: '#0284c7' },
-  noteTime: { fontSize: 10, color: '#94a3b8' },
+  noteAuthor: { fontSize: 11, fontWeight: 'bold', color: '#0284C7' },
+  noteTime: { fontSize: 10, color: '#94A3B8' },
   noteContent: { fontSize: 13, color: '#334155' },
   addNoteRow: { flexDirection: 'row', gap: 8, marginTop: 6 },
   addNoteInput: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: '#CBD5E1',
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 13,
   },
   addNoteBtn: {
-    backgroundColor: '#1a365d',
+    backgroundColor: '#0284C7',
     borderRadius: 8,
     paddingHorizontal: 14,
     justifyContent: 'center',

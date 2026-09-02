@@ -5,13 +5,17 @@ LSTM Autoencoder training, threshold calibration, comprehensive evaluation,
 and versioned artifact export.
 """
 
+from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Set, Tuple
 
 import numpy as np
-import torch
+try:
+    import torch
+except Exception:
+    torch = None
 
 from .config import PipelineConfig, default_pipeline_config
 from .dataset.dataset_builder import DatasetBuilder, DatasetBundle

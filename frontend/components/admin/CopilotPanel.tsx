@@ -212,48 +212,48 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/60 justify-end md:justify-center md:items-center">
-        <View className="w-full md:w-[680px] h-[90%] md:h-[760px] bg-[#0F172A] border border-slate-700/80 rounded-t-2xl md:rounded-2xl shadow-2xl flex-col overflow-hidden">
+      <View className="flex-1 bg-slate-900/50 justify-end md:justify-center md:items-center">
+        <View className="w-full md:w-[680px] h-[90%] md:h-[760px] bg-white border border-slate-200 rounded-t-2xl md:rounded-2xl shadow-2xl flex-col overflow-hidden">
           
           {/* Header */}
-          <View className="flex-row items-center justify-between px-5 py-4 bg-[#1E293B] border-b border-slate-700">
+          <View className="flex-row items-center justify-between px-5 py-4 bg-white border-b border-slate-200">
             <View className="flex-row items-center space-x-3">
-              <View className="w-8 h-8 rounded-lg bg-cyan-500/20 border border-cyan-500/40 items-center justify-center">
-                <Bot size={18} color="#06B6D4" />
+              <View className="w-8 h-8 rounded-lg bg-cyan-50 border border-cyan-200 items-center justify-center">
+                <Bot size={18} color="#0284C7" />
               </View>
               <View>
-                <Text className="text-white font-bold text-base tracking-wide">TourSafe Authority AI Copilot</Text>
-                <Text className="text-xs text-slate-400">Database-Grounded Decision Support</Text>
+                <Text className="text-slate-900 font-bold text-base tracking-wide">TourSafe Authority AI Copilot</Text>
+                <Text className="text-xs text-slate-500">Database-Grounded Decision Support</Text>
               </View>
             </View>
 
             <View className="flex-row items-center space-x-2">
               {activeIncidentId && (
-                <View className="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40">
-                  <Text className="text-amber-400 text-xs font-mono">{activeIncidentId}</Text>
+                <View className="px-2 py-0.5 rounded bg-amber-50 border border-amber-200">
+                  <Text className="text-amber-700 text-xs font-mono">{activeIncidentId}</Text>
                 </View>
               )}
               <Pressable
                 onPress={onClose}
-                className="w-8 h-8 rounded-full bg-slate-800 items-center justify-center hover:bg-slate-700"
+                className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center hover:bg-slate-200"
                 accessibilityRole="button"
                 accessibilityLabel="Close Copilot Panel"
               >
-                <X size={16} color="#94A3B8" />
+                <X size={16} color="#64748B" />
               </Pressable>
             </View>
           </View>
 
           {/* Suggested Queries Chips */}
-          <View className="bg-[#0B1120] py-2 px-4 border-b border-slate-800">
+          <View className="bg-slate-50 py-2 px-4 border-b border-slate-200">
             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
               {SUGGESTED_QUESTIONS.map((q, idx) => (
                 <Pressable
                   key={idx}
                   onPress={() => handleSendMessage(q)}
-                  className="mr-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50"
+                  className="mr-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 hover:border-cyan-500 shadow-sm"
                 >
-                  <Text className="text-xs text-slate-300">{q}</Text>
+                  <Text className="text-xs text-slate-700 font-medium">{q}</Text>
                 </Pressable>
               ))}
             </ScrollView>
@@ -262,7 +262,7 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
           {/* Messages Thread */}
           <ScrollView
             ref={scrollViewRef}
-            className="flex-1 p-4 bg-[#0B1120]"
+            className="flex-1 p-4 bg-slate-50"
             contentContainerStyle={{ paddingBottom: 24 }}
           >
             {messages.map((m, idx) => {
@@ -275,15 +275,15 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
                   className={`mb-4 flex-col ${isUser ? "items-end" : "items-start"}`}
                 >
                   <View
-                    className={`max-w-[90%] p-4 rounded-xl ${
+                    className={`max-w-[90%] p-4 rounded-xl shadow-sm ${
                       isUser
-                        ? "bg-cyan-900/30 border border-cyan-500/40"
-                        : "bg-[#1E293B] border border-slate-700/80"
+                        ? "bg-sky-50 border border-sky-200"
+                        : "bg-white border border-slate-200"
                     }`}
                   >
                     {/* Role Header */}
                     <View className="flex-row items-center justify-between mb-2">
-                      <Text className={`text-xs font-semibold uppercase tracking-wider ${isUser ? "text-cyan-400" : "text-slate-400"}`}>
+                      <Text className={`text-xs font-bold uppercase tracking-wider ${isUser ? "text-sky-700" : "text-slate-500"}`}>
                         {isUser ? "Authority Officer" : "TourSafe Copilot"}
                       </Text>
                       {m.data_freshness && (
@@ -294,26 +294,26 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
                     </View>
 
                     {/* Content */}
-                    <Text className="text-slate-100 text-sm leading-relaxed whitespace-pre-wrap">
+                    <Text className="text-slate-800 text-sm leading-relaxed whitespace-pre-wrap">
                       {m.content}
                     </Text>
 
                     {/* Citations Badges */}
                     {m.citations && m.citations.length > 0 && (
-                      <View className="mt-3 pt-2 border-t border-slate-700/60">
-                        <Text className="text-[11px] text-slate-400 font-medium mb-1.5">Evidence & Grounding:</Text>
+                      <View className="mt-3 pt-2 border-t border-slate-100">
+                        <Text className="text-[11px] text-slate-500 font-medium mb-1.5">Evidence & Grounding:</Text>
                         <View className="flex-row flex-wrap gap-1.5">
                           {m.citations.map((c, cIdx) => (
                             <View
                               key={cIdx}
-                              className="px-2 py-1 rounded bg-slate-800/90 border border-slate-600/60 flex-row items-center space-x-1"
+                              className="px-2 py-1 rounded bg-slate-100 border border-slate-200 flex-row items-center space-x-1"
                             >
                               {c.source_type === "document" ? (
-                                <FileText size={12} color="#38BDF8" />
+                                <FileText size={12} color="#0284C7" />
                               ) : (
-                                <Database size={12} color="#38BDF8" />
+                                <Database size={12} color="#0284C7" />
                               )}
-                              <Text className="text-[10px] text-sky-300 font-mono">
+                              <Text className="text-[10px] text-sky-800 font-mono">
                                 {c.title} {c.section ? `(${c.section})` : ""}
                               </Text>
                             </View>
@@ -324,31 +324,31 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 
                     {/* Action Proposal Preview Card */}
                     {m.action_proposal && (
-                      <View className="mt-4 p-3.5 rounded-lg bg-amber-950/30 border border-amber-500/60">
+                      <View className="mt-4 p-3.5 rounded-lg bg-amber-50 border border-amber-300">
                         <View className="flex-row items-center space-x-2 mb-2">
-                          <AlertTriangle size={15} color="#F59E0B" />
-                          <Text className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                          <AlertTriangle size={15} color="#D97706" />
+                          <Text className="text-xs font-bold text-amber-800 uppercase tracking-wider">
                             Action Proposal: {m.action_proposal.action_type.replace("_", " ")}
                           </Text>
                         </View>
 
-                        <Text className="text-xs text-slate-200 mb-1">
-                          <Text className="font-semibold text-slate-400">Target: </Text>
+                        <Text className="text-xs text-slate-800 mb-1">
+                          <Text className="font-semibold text-slate-600">Target: </Text>
                           {m.action_proposal.target_description}
                         </Text>
 
-                        <Text className="text-xs text-slate-200 mb-1">
-                          <Text className="font-semibold text-slate-400">Reason: </Text>
+                        <Text className="text-xs text-slate-800 mb-1">
+                          <Text className="font-semibold text-slate-600">Reason: </Text>
                           {m.action_proposal.reason}
                         </Text>
 
-                        <Text className="text-xs text-slate-300 mb-3 italic">
+                        <Text className="text-xs text-slate-600 mb-3 italic">
                           Expected Effect: {m.action_proposal.expected_effect}
                         </Text>
 
                         {actionFeedback[m.action_proposal.action_id] ? (
-                          <View className="py-2 px-3 rounded bg-slate-900 border border-slate-700">
-                            <Text className="text-xs font-mono text-slate-200">
+                          <View className="py-2 px-3 rounded bg-slate-100 border border-slate-200">
+                            <Text className="text-xs font-mono text-slate-700">
                               {actionFeedback[m.action_proposal.action_id]}
                             </Text>
                           </View>
@@ -357,14 +357,14 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
                             <Pressable
                               onPress={() => handleCancelAction(m.action_proposal!)}
                               disabled={actionConfirming === m.action_proposal.action_id}
-                              className="px-3 py-1.5 rounded bg-slate-800 border border-slate-600 hover:bg-slate-700"
+                              className="px-3 py-1.5 rounded bg-slate-100 border border-slate-300 hover:bg-slate-200"
                             >
-                              <Text className="text-xs font-medium text-slate-300">Cancel</Text>
+                              <Text className="text-xs font-medium text-slate-700">Cancel</Text>
                             </Pressable>
                             <Pressable
                               onPress={() => handleConfirmAction(m.action_proposal!)}
                               disabled={actionConfirming === m.action_proposal.action_id}
-                              className="px-4 py-1.5 rounded bg-emerald-600 border border-emerald-500 flex-row items-center space-x-1.5 hover:bg-emerald-500"
+                              className="px-4 py-1.5 rounded bg-emerald-600 border border-emerald-600 flex-row items-center space-x-1.5 hover:bg-emerald-500"
                             >
                               {actionConfirming === m.action_proposal.action_id ? (
                                 <ActivityIndicator size="small" color="#FFFFFF" />
@@ -382,23 +382,23 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 
                     {/* Feedback Actions for Assistant Messages */}
                     {!isUser && !m.action_proposal && (
-                      <View className="mt-2.5 flex-row items-center justify-between border-t border-slate-800/80 pt-1.5">
-                        <Text className="text-[10px] text-slate-500 font-mono">
+                      <View className="mt-2.5 flex-row items-center justify-between border-t border-slate-100 pt-1.5">
+                        <Text className="text-[10px] text-slate-400 font-mono">
                           {m.latency_ms > 0 ? `${m.latency_ms.toFixed(0)}ms` : "grounded"}
                         </Text>
                         {feedbackState ? (
-                          <Text className="text-[10px] text-emerald-400 font-mono">{feedbackState}</Text>
+                          <Text className="text-[10px] text-emerald-600 font-mono font-medium">{feedbackState}</Text>
                         ) : (
                           <View className="flex-row items-center space-x-2">
                             <Pressable
                               onPress={() => handleFeedback(m.message_id, "HELPFUL")}
-                              className="p-1 rounded hover:bg-slate-800"
+                              className="p-1 rounded hover:bg-slate-100"
                             >
                               <ThumbsUp size={13} color="#64748B" />
                             </Pressable>
                             <Pressable
                               onPress={() => handleFeedback(m.message_id, "NOT_HELPFUL")}
-                              className="p-1 rounded hover:bg-slate-800"
+                              className="p-1 rounded hover:bg-slate-100"
                             >
                               <ThumbsDown size={13} color="#64748B" />
                             </Pressable>
@@ -413,21 +413,21 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 
             {/* Live Tool Activity Progress */}
             {toolActivity && (
-              <View className="p-3 rounded-lg bg-slate-900 border border-slate-700/60 flex-row items-center space-x-2.5 my-2">
-                <ActivityIndicator size="small" color="#06B6D4" />
-                <Text className="text-xs text-cyan-400 font-mono">{toolActivity}</Text>
+              <View className="p-3 rounded-lg bg-sky-50 border border-sky-200 flex-row items-center space-x-2.5 my-2">
+                <ActivityIndicator size="small" color="#0284C7" />
+                <Text className="text-xs text-sky-800 font-mono">{toolActivity}</Text>
               </View>
             )}
           </ScrollView>
 
           {/* Input Bar */}
-          <View className="p-4 bg-[#1E293B] border-t border-slate-700 flex-row items-center space-x-3">
+          <View className="p-4 bg-white border-t border-slate-200 flex-row items-center space-x-3">
             <TextInput
               value={inputText}
               onChangeText={setInputText}
               placeholder="Ask Copilot about incidents, risk zones, responder workloads, or procedures..."
-              placeholderTextColor="#64748B"
-              className="flex-1 bg-[#0B1120] text-slate-100 px-4 py-2.5 rounded-xl border border-slate-700 text-sm"
+              placeholderTextColor="#94A3B8"
+              className="flex-1 bg-slate-50 text-slate-900 px-4 py-2.5 rounded-xl border border-slate-200 text-sm"
               onSubmitEditing={() => handleSendMessage()}
               returnKeyType="send"
               editable={!loading}
@@ -436,7 +436,7 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
               onPress={() => handleSendMessage()}
               disabled={loading || !inputText.trim()}
               className={`w-10 h-10 rounded-xl items-center justify-center ${
-                loading || !inputText.trim() ? "bg-slate-800 opacity-50" : "bg-cyan-600 hover:bg-cyan-500"
+                loading || !inputText.trim() ? "bg-slate-200 opacity-50" : "bg-sky-600 hover:bg-sky-500"
               }`}
             >
               {loading ? (

@@ -1,14 +1,37 @@
 import pymongo
 from motor.motor_asyncio import AsyncIOMotorClient
+try:
+    from mongomock_motor import AsyncMongoMockClient
+except Exception:
+    AsyncMongoMockClient = None
 from .config import settings
 
-client = AsyncIOMotorClient(
+_real_client = AsyncIOMotorClient(
     settings.mongodb_uri,
     serverSelectionTimeoutMS=settings.mongodb_timeout_ms,
     maxPoolSize=settings.mongodb_max_pool_size,
     minPoolSize=settings.mongodb_min_pool_size,
 )
+_mock_client = AsyncMongoMockClient() if AsyncMongoMockClient else None
+_use_mock = False
+
+client = _real_client
 database = client[settings.mongodb_database]
+
+
+def enable_fallback_database():
+    global client, database, _use_mock, _mock_client
+    if _mock_client is None:
+        try:
+            from mongomock_motor import AsyncMongoMockClient
+            _mock_client = AsyncMongoMockClient()
+        except Exception:
+            _mock_client = None
+    if _mock_client is not None:
+        client = _mock_client
+        database = client[settings.mongodb_database]
+        _use_mock = True
+        print("[INFO] Fallback in-memory MongoDB initialized for local development.")
 
 
 def get_database():
@@ -16,7 +39,10 @@ def get_database():
 
 
 async def close_database():
-    client.close()
+    try:
+        client.close()
+    except Exception:
+        pass
 
 
 async def init_db_indexes(db=None):

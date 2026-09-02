@@ -1,10 +1,10 @@
 /**
  * TourSafe Tourist Tabs Navigation Layout
- * Primary navigation for the mobile safety companion.
+ * Clean light mobile tab bar with 5 primary ergonomic tabs and prominent center SOS button.
  */
 
 import { Tabs } from "expo-router";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import {
   ShieldCheck,
   Compass,
@@ -31,66 +31,101 @@ export default function TouristTabsLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: styles.tabBar,
-          tabBarActiveTintColor: "#FF9933",
-          tabBarInactiveTintColor: "#94A3B8",
+          tabBarActiveTintColor: "#059669",
+          tabBarInactiveTintColor: "#64748B",
           tabBarLabelStyle: styles.tabBarLabel,
+          tabBarItemStyle: styles.tabBarItem,
         }}
       >
+        {/* Primary Tab 1: Home Dashboard */}
         <Tabs.Screen
           name="dashboard"
           options={{
             title: "Home",
-            tabBarIcon: ({ color }) => <ShieldCheck size={20} color={color} />,
+            tabBarIcon: ({ color, focused }) => (
+              <View style={[styles.iconWrapper, focused && styles.iconActive]}>
+                <ShieldCheck size={20} color={focused ? "#059669" : color} />
+              </View>
+            ),
           }}
         />
-        <Tabs.Screen
-          name="itinerary"
-          options={{
-            title: "Trips",
-            tabBarIcon: ({ color }) => <Compass size={20} color={color} />,
-          }}
-        />
+
+        {/* Primary Tab 2: Live Map & Corridors */}
         <Tabs.Screen
           name="map"
           options={{
             title: "Map",
-            tabBarIcon: ({ color }) => <MapPin size={20} color={color} />,
+            tabBarIcon: ({ color, focused }) => (
+              <View style={[styles.iconWrapper, focused && styles.iconActive]}>
+                <MapPin size={20} color={focused ? "#2563EB" : color} />
+              </View>
+            ),
+          }}
+        />
+
+        {/* Center Primary Action: SOS Emergency */}
+        <Tabs.Screen
+          name="sos"
+          options={{
+            title: "SOS",
+            tabBarIcon: ({ focused }) => (
+              <View style={styles.sosButtonContainer}>
+                <View style={styles.sosInnerButton}>
+                  <ShieldAlert size={22} color="#FFFFFF" />
+                </View>
+              </View>
+            ),
+            tabBarLabelStyle: styles.sosLabel,
+            tabBarActiveTintColor: "#DC2626",
+          }}
+        />
+
+        {/* Primary Tab 4: Verifiable Digital ID */}
+        <Tabs.Screen
+          name="digital-id"
+          options={{
+            title: "Digital ID",
+            tabBarIcon: ({ color, focused }) => (
+              <View style={[styles.iconWrapper, focused && styles.iconActive]}>
+                <CreditCard size={20} color={focused ? "#D97706" : color} />
+              </View>
+            ),
+          }}
+        />
+
+        {/* Primary Tab 5: Profile & Settings */}
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Profile",
+            tabBarIcon: ({ color, focused }) => (
+              <View style={[styles.iconWrapper, focused && styles.iconActive]}>
+                <User size={20} color={focused ? "#7C3AED" : color} />
+              </View>
+            ),
+          }}
+        />
+
+        {/* Auxiliary Tabs */}
+        <Tabs.Screen
+          name="itinerary"
+          options={{
+            href: null,
+            title: "Trips",
           }}
         />
         <Tabs.Screen
           name="safety"
           options={{
+            href: null,
             title: "Safety",
-            tabBarIcon: ({ color }) => <Activity size={20} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="sos"
-          options={{
-            title: "SOS",
-            tabBarIcon: ({ color }) => <ShieldAlert size={20} color="#EF4444" />,
-            tabBarActiveTintColor: "#EF4444",
           }}
         />
         <Tabs.Screen
           name="incidents"
           options={{
-            title: "Incident",
-            tabBarIcon: ({ color }) => <FileText size={20} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="digital-id"
-          options={{
-            title: "Digital ID",
-            tabBarIcon: ({ color }) => <CreditCard size={20} color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: "Profile",
-            tabBarIcon: ({ color }) => <User size={20} color={color} />,
+            href: null,
+            title: "Incidents",
           }}
         />
       </Tabs>
@@ -101,18 +136,68 @@ export default function TouristTabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0B132B",
+    backgroundColor: "#F8FAFC",
   },
   tabBar: {
-    backgroundColor: "#0F172A",
+    backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.08)",
-    paddingBottom: 6,
-    paddingTop: 6,
-    height: 58,
+    borderTopColor: "#E2E8F0",
+    paddingBottom: Platform.OS === "ios" ? 22 : 8,
+    paddingTop: 8,
+    height: Platform.OS === "ios" ? 84 : 64,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  tabBarItem: {
+    paddingVertical: 2,
   },
   tabBarLabel: {
     fontSize: 10,
-    fontWeight: "600",
+    fontWeight: "700",
+    letterSpacing: 0.2,
+    marginTop: 2,
+  },
+  iconWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  iconActive: {
+    backgroundColor: "#F1F5F9",
+  },
+  sosButtonContainer: {
+    position: "relative",
+    top: -12,
+    alignItems: "center",
+    justifyContent: "center",
+    width: 52,
+    height: 52,
+  },
+  sosInnerButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "#DC2626",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#DC2626",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+  },
+  sosLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#DC2626",
+    letterSpacing: 0.5,
+    marginTop: -8,
   },
 });

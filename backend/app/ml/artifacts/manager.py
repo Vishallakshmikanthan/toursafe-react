@@ -4,13 +4,21 @@ Handles atomic persistence, ONNX graph export and parity verification,
 scaler/threshold serialization, metadata tracking, and artifact registry.
 """
 
+from __future__ import annotations
 from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
-import onnxruntime as ort
-import torch
+try:
+    import onnxruntime as ort
+except Exception:
+    ort = None
+
+try:
+    import torch
+except Exception:
+    torch = None
 
 from ..config import ArtifactConfig, ModelConfig, PipelineConfig
 from ..evaluation.evaluator import AnomalyEvaluationReport

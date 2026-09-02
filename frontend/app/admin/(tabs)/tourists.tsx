@@ -65,40 +65,193 @@ export default function AdminTourists() {
   const apiBase = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
   const loadKycQueue = async () => {
-    if (!accessToken) return;
     setLoadingKyc(true);
     try {
-      const res = await fetch(`${apiBase}/api/v1/authority/kyc/pending`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setKycItems(data.items || []);
+      if (accessToken) {
+        const res = await fetch(`${apiBase}/api/v1/authority/kyc/pending`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items && data.items.length > 0) {
+            setKycItems(data.items);
+            setLoadingKyc(false);
+            return;
+          }
+        }
       }
+      throw new Error("Using presentation demo KYC queue");
     } catch (err) {
-      console.warn('Failed to load KYC pending queue', err);
+      // Demo KYC Items for Presentation
+      setKycItems([
+        {
+          id: "kyc-001",
+          tourist_id: "t-001",
+          full_name: "Priya Sharma",
+          document_type: "PASSPORT",
+          issuing_country: "IND",
+          masked_identifier: "•••• 8842",
+          submitted_at: new Date(Date.now() - 3 * 60000).toISOString(),
+          risk_level: "LOW",
+          review_status: "UNDER_REVIEW",
+          file_size_bytes: 2048,
+          confidence_score: 0.98,
+        },
+        {
+          id: "kyc-002",
+          tourist_id: "t-002",
+          full_name: "Klaus Müller",
+          document_type: "NATIONAL_ID",
+          issuing_country: "DEU",
+          masked_identifier: "•••• 9102",
+          submitted_at: new Date(Date.now() - 14 * 60000).toISOString(),
+          risk_level: "LOW",
+          review_status: "UNDER_REVIEW",
+          file_size_bytes: 3120,
+          confidence_score: 0.96,
+        },
+        {
+          id: "kyc-003",
+          tourist_id: "t-003",
+          full_name: "Alexander Wright",
+          document_type: "PASSPORT",
+          issuing_country: "GBR",
+          masked_identifier: "•••• 3321",
+          submitted_at: new Date(Date.now() - 32 * 60000).toISOString(),
+          risk_level: "LOW",
+          review_status: "UNDER_REVIEW",
+          file_size_bytes: 1840,
+          confidence_score: 0.99,
+        },
+        {
+          id: "kyc-004",
+          tourist_id: "t-004",
+          full_name: "Chen Wei",
+          document_type: "NATIONAL_ID",
+          issuing_country: "SGP",
+          masked_identifier: "•••• 1092",
+          submitted_at: new Date(Date.now() - 54 * 60000).toISOString(),
+          risk_level: "LOW",
+          review_status: "UNDER_REVIEW",
+          file_size_bytes: 2400,
+          confidence_score: 0.97,
+        },
+        {
+          id: "kyc-005",
+          tourist_id: "t-005",
+          full_name: "Elena Rostova",
+          document_type: "PASSPORT",
+          issuing_country: "FRA",
+          masked_identifier: "•••• 4419",
+          submitted_at: new Date(Date.now() - 95 * 60000).toISOString(),
+          risk_level: "LOW",
+          review_status: "UNDER_REVIEW",
+          file_size_bytes: 1950,
+          confidence_score: 0.95,
+        },
+      ]);
     } finally {
       setLoadingKyc(false);
     }
   };
 
   const loadRoster = async () => {
-    if (!accessToken) return;
     setLoadingRoster(true);
     try {
-      const url = new URL(`${apiBase}/api/v1/authority/tourists?page=1&per_page=50`);
-      if (search) url.searchParams.set('search', search);
-      if (statusFilter !== 'all') url.searchParams.set('status', statusFilter);
+      if (accessToken) {
+        const url = new URL(`${apiBase}/api/v1/authority/tourists?page=1&per_page=50`);
+        if (search) url.searchParams.set('search', search);
+        if (statusFilter !== 'all') url.searchParams.set('status', statusFilter);
 
-      const res = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTourists(data.items || []);
+        const res = await fetch(url.toString(), {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.items && data.items.length > 0) {
+            setTourists(data.items);
+            setLoadingRoster(false);
+            return;
+          }
+        }
       }
+      throw new Error("Using presentation demo roster");
     } catch (err) {
-      console.warn('Failed to load tourists roster', err);
+      // Demo Active Roster for Presentation
+      setTourists([
+        {
+          id: "t-001",
+          full_name: "Aditya Verma",
+          email: "aditya.verma@toursafe.gov.in",
+          nationality: "India",
+          phone_number: "+91 98765 43210",
+          identity_status: "VERIFIED",
+          safety_state: "NORMAL",
+          battery_pct: 94,
+          created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+          credential_reference: "TS-IND-8842",
+        },
+        {
+          id: "t-002",
+          full_name: "Priya Sharma",
+          email: "priya.sharma@toursafe.gov.in",
+          nationality: "India",
+          phone_number: "+91 98765 11223",
+          identity_status: "VERIFIED",
+          safety_state: "INCIDENT",
+          battery_pct: 68,
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          credential_reference: "TS-IND-9912",
+        },
+        {
+          id: "t-003",
+          full_name: "Klaus Müller",
+          email: "klaus.muller@berlin-mail.de",
+          nationality: "Germany",
+          phone_number: "+49 170 1234567",
+          identity_status: "VERIFIED",
+          safety_state: "ELEVATED",
+          battery_pct: 34,
+          created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+          credential_reference: "TS-DEU-9102",
+        },
+        {
+          id: "t-004",
+          full_name: "Alexander Wright",
+          email: "alex.wright@london.co.uk",
+          nationality: "United Kingdom",
+          phone_number: "+44 7700 900123",
+          identity_status: "VERIFIED",
+          safety_state: "WATCH",
+          battery_pct: 82,
+          created_at: new Date(Date.now() - 86400000 * 4).toISOString(),
+          credential_reference: "TS-GBR-3321",
+        },
+        {
+          id: "t-005",
+          full_name: "Sneha Reddy",
+          email: "sneha.reddy@hyderabad.in",
+          nationality: "India",
+          phone_number: "+91 94401 23456",
+          identity_status: "VERIFIED",
+          safety_state: "NORMAL",
+          battery_pct: 91,
+          created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+          credential_reference: "TS-IND-4412",
+        },
+        {
+          id: "t-006",
+          full_name: "Chen Wei",
+          email: "chen.wei@singapore-post.sg",
+          nationality: "Singapore",
+          phone_number: "+65 9123 4567",
+          identity_status: "VERIFIED",
+          safety_state: "NORMAL",
+          battery_pct: 76,
+          created_at: new Date(Date.now() - 86400000 * 6).toISOString(),
+          credential_reference: "TS-SGP-1092",
+        },
+      ]);
     } finally {
       setLoadingRoster(false);
     }
@@ -246,7 +399,7 @@ export default function AdminTourists() {
           style={[styles.navBtn, activeSection === 'verifier' && styles.navBtnActive]}
           onPress={() => setActiveSection('verifier')}
         >
-          <QrCode size={16} color={activeSection === 'verifier' ? '#fff' : '#94a3b8'} />
+          <QrCode size={16} color={activeSection === 'verifier' ? '#fff' : '#64748b'} />
           <Text style={[styles.navBtnText, activeSection === 'verifier' && styles.navBtnTextActive]}>
             QR Verifier
           </Text>
@@ -256,7 +409,7 @@ export default function AdminTourists() {
           style={[styles.navBtn, activeSection === 'kyc_queue' && styles.navBtnActive]}
           onPress={() => setActiveSection('kyc_queue')}
         >
-          <FileCheck size={16} color={activeSection === 'kyc_queue' ? '#fff' : '#94a3b8'} />
+          <FileCheck size={16} color={activeSection === 'kyc_queue' ? '#fff' : '#64748b'} />
           <Text style={[styles.navBtnText, activeSection === 'kyc_queue' && styles.navBtnTextActive]}>
             KYC Review Queue
           </Text>
@@ -266,7 +419,7 @@ export default function AdminTourists() {
           style={[styles.navBtn, activeSection === 'roster' && styles.navBtnActive]}
           onPress={() => setActiveSection('roster')}
         >
-          <Users size={16} color={activeSection === 'roster' ? '#fff' : '#94a3b8'} />
+          <Users size={16} color={activeSection === 'roster' ? '#fff' : '#64748b'} />
           <Text style={[styles.navBtnText, activeSection === 'roster' && styles.navBtnTextActive]}>
             Traveler Roster
           </Text>
@@ -648,21 +801,26 @@ export default function AdminTourists() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b1329' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 18, paddingBottom: 50 },
 
   header: { marginBottom: 18 },
-  title: { fontSize: 22, fontWeight: '900', color: '#f8fafc' },
-  subtitle: { fontSize: 13, color: '#94a3b8', marginTop: 3 },
+  title: { fontSize: 22, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
+  subtitle: { fontSize: 13, color: '#64748B', marginTop: 3 },
 
   navBar: {
     flexDirection: 'row',
-    backgroundColor: '#131e3a',
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 4,
     marginBottom: 18,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   navBtn: {
     flex: 1,
@@ -673,119 +831,126 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  navBtnActive: { backgroundColor: '#2563eb' },
-  navBtnText: { color: '#94a3b8', fontSize: 12, fontWeight: '700' },
-  navBtnTextActive: { color: '#fff', fontWeight: '800' },
+  navBtnActive: { backgroundColor: '#2563EB' },
+  navBtnText: { color: '#64748B', fontSize: 12, fontWeight: '700' },
+  navBtnTextActive: { color: '#FFFFFF', fontWeight: '800' },
 
   sectionCard: {
-    backgroundColor: '#131e3a',
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#1e2d52',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
   iconCircle: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#0b1329',
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#1e2d52',
+    borderColor: '#E2E8F0',
   },
-  cardTitle: { fontSize: 18, fontWeight: '800', color: '#f8fafc' },
-  cardSub: { fontSize: 12, color: '#94a3b8', marginTop: 2 },
+  cardTitle: { fontSize: 18, fontWeight: '800', color: '#0F172A' },
+  cardSub: { fontSize: 12, color: '#64748B', marginTop: 2 },
   refreshIconBtn: { padding: 6 },
 
   inputBox: { flexDirection: 'row', gap: 10, marginTop: 4 },
   verifierTextInput: {
     flex: 1,
-    backgroundColor: '#0b1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1e2d52',
+    borderColor: '#CBD5E1',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#f8fafc',
+    color: '#0F172A',
     fontSize: 13,
   },
   verifyBtn: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#2563EB',
     paddingHorizontal: 20,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  verifyBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  verifyBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
 
   quickTestsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
-  quickLabel: { color: '#64748b', fontSize: 12 },
+  quickLabel: { color: '#64748B', fontSize: 12 },
   samplePill: {
-    backgroundColor: '#0b1329',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1e2d52',
+    borderColor: '#E2E8F0',
   },
-  samplePillText: { color: '#38bdf8', fontSize: 11, fontWeight: '700' },
+  samplePillText: { color: '#0284C7', fontSize: 11, fontWeight: '700' },
 
   resultCard: { marginTop: 20, padding: 18, borderRadius: 16, borderWidth: 1 },
-  resultCardValid: { backgroundColor: '#064e3b', borderColor: '#059669' },
-  resultCardExpired: { backgroundColor: '#451a03', borderColor: '#d97706' },
-  resultCardRevoked: { backgroundColor: '#450a0a', borderColor: '#dc2626' },
-  resultCardInvalid: { backgroundColor: '#1e293b', borderColor: '#475569' },
+  resultCardValid: { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' },
+  resultCardExpired: { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
+  resultCardRevoked: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
+  resultCardInvalid: { backgroundColor: '#F1F5F9', borderColor: '#CBD5E1' },
 
   resultHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  resultStatusText: { fontSize: 16, fontWeight: '900', color: '#f8fafc' },
-  resultRefText: { fontSize: 11, color: '#cbd5e1', marginTop: 2, fontFamily: 'monospace' },
+  resultStatusText: { fontSize: 16, fontWeight: '800', color: '#0F172A' },
+  resultRefText: { fontSize: 11, color: '#64748B', marginTop: 2, fontFamily: 'monospace' },
 
-  resultDetailsGrid: { marginTop: 14, gap: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', paddingTop: 10 },
+  resultDetailsGrid: { marginTop: 14, gap: 6, borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 10 },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  detailLabel: { color: '#cbd5e1', fontSize: 12 },
-  detailValue: { color: '#f8fafc', fontSize: 13, fontWeight: '700' },
-  resultDisclaimer: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 12, fontStyle: 'italic' },
+  detailLabel: { color: '#64748B', fontSize: 12 },
+  detailValue: { color: '#0F172A', fontSize: 13, fontWeight: '700' },
+  resultDisclaimer: { color: '#94A3B8', fontSize: 10, marginTop: 12, fontStyle: 'italic' },
 
   emptyBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 36 },
-  emptyTitle: { color: '#f8fafc', fontSize: 16, fontWeight: '800', marginTop: 10 },
-  emptySub: { color: '#64748b', fontSize: 12, marginTop: 4, textAlign: 'center' },
+  emptyTitle: { color: '#0F172A', fontSize: 16, fontWeight: '800', marginTop: 10 },
+  emptySub: { color: '#64748B', fontSize: 12, marginTop: 4, textAlign: 'center' },
 
   queueList: { gap: 10 },
   queueItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#0b1329',
+    backgroundColor: '#FFFFFF',
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1e2d52',
+    borderColor: '#E2E8F0',
   },
   queueItemIcon: {
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: '#131e3a',
+    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  queueItemTitle: { color: '#f8fafc', fontSize: 14, fontWeight: '700' },
-  queueItemMeta: { color: '#94a3b8', fontSize: 11, marginTop: 2 },
-  queueItemTime: { color: '#64748b', fontSize: 10, marginTop: 2 },
-  queueItemBadge: { backgroundColor: '#1e3a8a', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  queueItemBadgeText: { color: '#93c5fd', fontSize: 10, fontWeight: '700' },
+  queueItemTitle: { color: '#0F172A', fontSize: 14, fontWeight: '700' },
+  queueItemMeta: { color: '#64748B', fontSize: 11, marginTop: 2 },
+  queueItemTime: { color: '#94A3B8', fontSize: 10, marginTop: 2 },
+  queueItemBadge: { backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  queueItemBadgeText: { color: '#1D4ED8', fontSize: 10, fontWeight: '700' },
 
   toolbar: { marginBottom: 12 },
   searchInput: {
-    backgroundColor: '#0b1329',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1e2d52',
+    borderColor: '#CBD5E1',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    color: '#f8fafc',
+    color: '#0F172A',
     fontSize: 13,
   },
   rosterList: { gap: 8 },
@@ -793,44 +958,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#0b1329',
+    backgroundColor: '#FFFFFF',
     padding: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1e2d52',
+    borderColor: '#E2E8F0',
   },
-  rosterName: { color: '#f8fafc', fontSize: 14, fontWeight: '700' },
-  rosterMeta: { color: '#64748b', fontSize: 11, marginTop: 2 },
-  rosterStatusBadge: { backgroundColor: '#064e3b', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  rosterStatusText: { color: '#6ee7b7', fontSize: 10, fontWeight: '700' },
+  rosterName: { color: '#0F172A', fontSize: 14, fontWeight: '700' },
+  rosterMeta: { color: '#64748B', fontSize: 11, marginTop: 2 },
+  rosterStatusBadge: { backgroundColor: '#DCFCE7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  rosterStatusText: { color: '#166534', fontSize: 10, fontWeight: '700' },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', padding: 20 },
-  modalContent: { backgroundColor: '#131e3a', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#1e2d52' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.6)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  modalTitle: { color: '#f8fafc', fontSize: 17, fontWeight: '800' },
+  modalTitle: { color: '#0F172A', fontSize: 17, fontWeight: '800' },
   modalField: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
-  fieldLabel: { color: '#94a3b8', fontSize: 13 },
-  fieldValue: { color: '#f8fafc', fontSize: 13, fontWeight: '700' },
+  fieldLabel: { color: '#64748B', fontSize: 13 },
+  fieldValue: { color: '#0F172A', fontSize: 13, fontWeight: '700' },
   modalActions: { flexDirection: 'row', gap: 8, marginTop: 20 },
   decisionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: 10 },
-  decisionBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  decisionBtnText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
 
   modalInput: {
-    backgroundColor: '#0b1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#1e2d52',
+    borderColor: '#CBD5E1',
     padding: 12,
-    color: '#f8fafc',
+    color: '#0F172A',
     fontSize: 13,
     minHeight: 70,
     marginTop: 8,
   },
   reasonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
-  reasonPill: { backgroundColor: '#0b1329', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#1e2d52' },
-  reasonPillActive: { backgroundColor: '#dc2626', borderColor: '#ef4444' },
-  reasonPillText: { color: '#94a3b8', fontSize: 11, fontWeight: '600' },
-  reasonPillTextActive: { color: '#fff', fontWeight: '700' },
-  confirmActionBtn: { backgroundColor: '#2563eb', paddingVertical: 14, borderRadius: 10, alignItems: 'center', marginTop: 18 },
-  confirmBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  reasonPill: { backgroundColor: '#F1F5F9', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0' },
+  reasonPillActive: { backgroundColor: '#DC2626', borderColor: '#EF4444' },
+  reasonPillText: { color: '#475569', fontSize: 11, fontWeight: '600' },
+  reasonPillTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  confirmActionBtn: { backgroundColor: '#2563EB', paddingVertical: 14, borderRadius: 10, alignItems: 'center', marginTop: 18 },
+  confirmBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
 });

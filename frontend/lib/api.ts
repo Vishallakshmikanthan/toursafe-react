@@ -52,22 +52,12 @@ api.interceptors.response.use(
     if (err.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      if (isHandling401) {
-        return new Promise((resolve) => {
-          processQueue(null, null);
-          resolve(originalRequest);
-        });
+      const store = useAuthStore.getState();
+      if (!store.refreshToken) {
+        return Promise.reject(err);
       }
 
-      isHandling401 = true;
-
       try {
-        const store = useAuthStore.getState();
-        if (!store.refreshToken) {
-          router.replace("/auth/login");
-          return Promise.reject(err);
-        }
-
         const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/refresh`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -78,29 +68,18 @@ api.interceptors.response.use(
           const data = await response.json();
           const { access_token: newAccessToken, refresh_token: newRefreshToken } = data;
 
-          // Update auth store
           useAuthStore.setState({
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
           });
 
-          // Retry the original request
           if (originalRequest.headers) {
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           }
           return api(originalRequest);
-        } else {
-          // Refresh failed - logout
-          useAuthStore.getState().signOut();
-          router.replace("/auth/login");
-          return Promise.reject(err);
         }
       } catch (refreshError) {
-        useAuthStore.getState().signOut();
-        router.replace("/auth/login");
-        return Promise.reject(err);
-      } finally {
-        isHandling401 = false;
+        // Fall through gracefully without disrupting user navigation
       }
     }
 

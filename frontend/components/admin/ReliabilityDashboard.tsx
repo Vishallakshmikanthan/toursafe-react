@@ -344,7 +344,7 @@ export const ReliabilityDashboard: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090D16',
+    backgroundColor: '#F8FAFC',
   },
   content: {
     padding: 16,
@@ -360,15 +360,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 4,
   },
   modeText: {
-    color: '#38BDF8',
+    color: '#0284C7',
     fontWeight: '700',
   },
   modeButtonsRow: {
@@ -376,20 +377,23 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   modeBtn: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
   },
   modeBtnActive: {
     backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
   },
   criticalBtn: {
     borderColor: '#EF4444',
     borderWidth: 1,
   },
   modeBtnText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -399,7 +403,7 @@ const styles = StyleSheet.create({
   tabsRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#E2E8F0',
     marginBottom: 16,
     gap: 16,
   },
@@ -408,7 +412,7 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     borderBottomWidth: 2,
-    borderBottomColor: '#38BDF8',
+    borderBottomColor: '#0284C7',
   },
   tabText: {
     color: '#64748B',
@@ -416,13 +420,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   tabTextActive: {
-    color: '#38BDF8',
+    color: '#0284C7',
+    fontWeight: '700',
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    color: '#F1F5F9',
+    color: '#0F172A',
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 12,
@@ -440,11 +445,16 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     minWidth: 200,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FFFFFF',
     padding: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cardLabel: {
     color: '#64748B',
@@ -453,22 +463,27 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   cardVal: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 20,
     fontWeight: '800',
     marginVertical: 4,
   },
   cardSub: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 11,
   },
   sloCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FFFFFF',
     padding: 14,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     marginBottom: 10,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   sloHeader: {
     flexDirection: 'row',
@@ -476,7 +491,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sloName: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: '700',
   },
@@ -486,15 +501,15 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   badgeGreen: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: '#ECFDF5',
   },
   badgeRed: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: '#FEF2F2',
   },
   badgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#065F46',
   },
   sloFormula: {
     color: '#64748B',
@@ -507,7 +522,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   sloStat: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 12,
   },
   sectionHeaderRow: {
@@ -535,20 +550,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dlqCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FFFFFF',
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
     marginBottom: 8,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2,
   },
   dlqId: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontWeight: '700',
     fontSize: 13,
   },
   replayBtn: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#0284C7',
     paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 4,
@@ -559,7 +579,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dlqError: {
-    color: '#EF4444',
+    color: '#DC2626',
     fontSize: 12,
     marginTop: 4,
   },
@@ -569,15 +589,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   backupCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FFFFFF',
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     marginBottom: 8,
   },
   backupId: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontWeight: '700',
     fontSize: 13,
   },
@@ -586,13 +606,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dryRunBtn: {
-    backgroundColor: '#334155',
+    backgroundColor: '#F1F5F9',
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
   },
   dryRunText: {
-    color: '#E2E8F0',
+    color: '#334155',
     fontSize: 11,
     fontWeight: '600',
   },
@@ -608,7 +630,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   backupMeta: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 11,
     marginTop: 3,
   },
@@ -632,15 +654,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   drillCard: {
-    backgroundColor: '#0F172A',
+    backgroundColor: '#FFFFFF',
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     marginBottom: 8,
   },
   drillName: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontWeight: '700',
     fontSize: 13,
   },

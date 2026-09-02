@@ -1,4 +1,4 @@
-fastapi==0.111.0
+fastapi>=0.115.6
 uvicorn[standard]==0.30.4
 pymongo==4.10.1
 motor>=3.6.0
@@ -14,3 +14,4 @@ scipy>=1.13.0
 scikit-learn>=1.5.0
 python-multipart==0.0.9
 psutil>=5.9.0
+mongomock-motor>=0.0.36

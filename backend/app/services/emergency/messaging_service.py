@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 import html
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 import uuid
 
 from ...core import database as db_core

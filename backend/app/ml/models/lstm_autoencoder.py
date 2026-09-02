@@ -4,11 +4,18 @@ Learns deep temporal representations of normal human locomotion and computes
 reconstruction error as a continuous anomaly metric.
 """
 
+from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+except Exception:
+    torch = None
+    class _DummyNN:
+        Module = object
+    nn = _DummyNN
 
 from ..config import ModelConfig
 

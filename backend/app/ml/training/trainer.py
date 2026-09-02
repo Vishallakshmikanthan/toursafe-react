@@ -4,14 +4,21 @@ Handles PyTorch model training, learning rate scheduling, early stopping,
 gradient norm clipping, and loss logging.
 """
 
+from __future__ import annotations
 import copy
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 import numpy as np
-import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
+try:
+    import torch
+    import torch.nn as nn
+    from torch.utils.data import DataLoader, TensorDataset
+except Exception:
+    torch = None
+    nn = None
+    DataLoader = None
+    TensorDataset = None
 
 from ..config import TrainingConfig
 from ..models.lstm_autoencoder import TourSafeLSTMAutoencoder
