@@ -30,6 +30,8 @@ import { useSOSStore } from "@/store/sosStore";
 import { useLocationStore } from "@/store/locationStore";
 import { useBatteryStore } from "@/store/batteryStore";
 import { useConnectivityStore } from "@/store/connectivityStore";
+import { SosGuardCard } from "@/components/sos/SosGuardCard";
+import { sosService } from "@/lib/sos/sosService";
 import {
   ShieldAlert,
   ShieldCheck,
@@ -144,6 +146,20 @@ export default function SOSScreen() {
         text1: "SOS Queued Offline",
         text2: "SOS is saved locally and will transmit as soon as connection is available.",
       });
+    }
+  }
+
+  async function handleSosAutoDispatch(description: string) {
+    const lat = currentLocation?.latitude || 10.2381;
+    const lng = currentLocation?.longitude || 77.4892;
+    const accuracy = currentLocation?.accuracy || 8;
+
+    try {
+      await triggerSOS(lat, lng, accuracy, description);
+      await sosService.dispatchSosEmergencyActions(lat, lng);
+    } catch (e: any) {
+      await sosService.dispatchSosEmergencyActions(lat, lng);
+      throw e;
     }
   }
 
@@ -300,6 +316,9 @@ export default function SOSScreen() {
             </View>
           )}
         </View>
+        
+        {/* ── AUTONOMOUS DISTRESS GUARD CARD ────────────────────────── */}
+        <SosGuardCard onAutoTriggerSos={handleSosAutoDispatch} />
 
         {/* ── LIVE EDGE TELEMETRY HUD ─────────────────────────────────── */}
         <View style={styles.telemetryCard}>

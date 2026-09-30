@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "dev": "npm --prefix frontend start",
     "web": "npm --prefix frontend run web",
     "start": "npm --prefix frontend start",
     "android": "npm --prefix frontend run android",
