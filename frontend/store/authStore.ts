@@ -4,7 +4,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AuthUser } from "@/types";
 import Toast from "react-native-toast-message";
 import { realtimeClient } from "@/lib/realtimeClient";
-import { initRealtimeEventDispatcher } from "@/lib/eventDispatcher";
+
+function notifyRealtimeDispatcher() {
+  import("@/lib/eventDispatcher")
+    .then(({ initRealtimeEventDispatcher }) => {
+      initRealtimeEventDispatcher();
+    })
+    .catch((err) => {
+      console.warn("[AuthStore] Failed to initialize event dispatcher:", err);
+    });
+}
 
 interface AuthState {
   user: AuthUser | null;
@@ -86,7 +95,7 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken,
                 isAuthenticated: true,
               });
-              initRealtimeEventDispatcher();
+              notifyRealtimeDispatcher();
               if (accessToken) {
                 realtimeClient.connect(accessToken);
               }
@@ -170,7 +179,7 @@ export const useAuthStore = create<AuthState>()(
               isAuthenticated: true,
             });
 
-            initRealtimeEventDispatcher();
+            notifyRealtimeDispatcher();
             realtimeClient.connect(access_token);
             return true;
           }
@@ -192,7 +201,7 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
         });
 
-        initRealtimeEventDispatcher();
+        notifyRealtimeDispatcher();
         return true;
       },
       refreshSession: async () => {

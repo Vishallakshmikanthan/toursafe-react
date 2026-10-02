@@ -54,6 +54,7 @@ export function SosGuardCard({ onAutoTriggerSos }: SosGuardCardProps) {
 
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [demoOptionsVisible, setDemoOptionsVisible] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   // Settings local state
   const [selectedSensitivity, setSelectedSensitivity] =
@@ -333,135 +334,179 @@ export function SosGuardCard({ onAutoTriggerSos }: SosGuardCardProps) {
         </TouchableOpacity>
       </View>
 
-      {/* ── LIVE MULTI-SENSOR TELEMETRY GAUGES ────────────────────────── */}
-      <View style={styles.gaugesContainer}>
-        <View style={styles.gaugesHeader}>
-          <Text style={styles.gaugesTitle}>REAL-TIME HARDWARE SENSOR FUSION</Text>
-          <Text style={styles.sensitivityBadge}>
-            {preferences.sensitivity.toUpperCase()} SENSITIVITY
-          </Text>
-        </View>
-
-        <View style={styles.gaugesGrid}>
-          {/* Acceleration Sensor */}
-          <View style={styles.gaugeCard}>
-            <View style={styles.gaugeHeaderRow}>
-              <View style={styles.sensorIconRow}>
-                <Activity size={14} color="#0284C7" />
-                <Text style={styles.gaugeName}>ACCELEROMETER</Text>
-              </View>
-              {metrics.accelTriggered && (
-                <View style={styles.triggerBadge}>
-                  <Text style={styles.triggerBadgeText}>TRIGGERED</Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.gaugeValue}>
-              {metrics.lastAccel.toFixed(2)}{" "}
-              <Text style={styles.gaugeUnit}>m/s²</Text>
-            </Text>
-            <Text style={styles.gaugeThreshold}>
-              Threshold: {thresholds.accel.toFixed(1)} m/s²
-            </Text>
-            <View style={styles.progressBarTrack}>
-              <View
+      {/* ── AMBIENT SENSITIVITY SELECTOR ───────────────────────────── */}
+      <View style={styles.ambientPillSection}>
+        <Text style={styles.ambientPillTitle}>DISTRESS SENSITIVITY</Text>
+        <View style={styles.sensitivityPillsRow}>
+          {(["low", "medium", "high"] as SensitivityLevel[]).map((level) => (
+            <TouchableOpacity
+              key={level}
+              style={[
+                styles.sensitivityPillBtn,
+                preferences.sensitivity === level && styles.sensitivityPillBtnActive,
+              ]}
+              onPress={() => updatePreferences({ sensitivity: level })}
+              activeOpacity={0.7}
+            >
+              <Text
                 style={[
-                  styles.progressBarFill,
-                  {
-                    width: `${Math.round(accelPct * 100)}%`,
-                    backgroundColor: metrics.accelTriggered ? "#DC2626" : "#0284C7",
-                  },
+                  styles.sensitivityPillText,
+                  preferences.sensitivity === level && styles.sensitivityPillTextActive,
                 ]}
-              />
-            </View>
-          </View>
-
-          {/* Gyroscope Sensor */}
-          <View style={styles.gaugeCard}>
-            <View style={styles.gaugeHeaderRow}>
-              <View style={styles.sensorIconRow}>
-                <RotateCw size={14} color="#7C3AED" />
-                <Text style={styles.gaugeName}>GYROSCOPE</Text>
-              </View>
-              {metrics.gyroTriggered && (
-                <View style={styles.triggerBadge}>
-                  <Text style={styles.triggerBadgeText}>TRIGGERED</Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.gaugeValue}>
-              {metrics.lastGyro.toFixed(2)}{" "}
-              <Text style={styles.gaugeUnit}>rad/s</Text>
-            </Text>
-            <Text style={styles.gaugeThreshold}>
-              Threshold: {thresholds.gyro.toFixed(1)} rad/s
-            </Text>
-            <View style={styles.progressBarTrack}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  {
-                    width: `${Math.round(gyroPct * 100)}%`,
-                    backgroundColor: metrics.gyroTriggered ? "#DC2626" : "#7C3AED",
-                  },
-                ]}
-              />
-            </View>
-          </View>
-
-          {/* Acoustic Sound Sensor */}
-          <View style={styles.gaugeCard}>
-            <View style={styles.gaugeHeaderRow}>
-              <View style={styles.sensorIconRow}>
-                <Volume2 size={14} color="#D97706" />
-                <Text style={styles.gaugeName}>ACOUSTIC MIC</Text>
-              </View>
-              {metrics.soundTriggered && (
-                <View style={styles.triggerBadge}>
-                  <Text style={styles.triggerBadgeText}>TRIGGERED</Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.gaugeValue}>
-              {metrics.lastSound}{" "}
-              <Text style={styles.gaugeUnit}>RMS</Text>
-            </Text>
-            <Text style={styles.gaugeThreshold}>
-              Threshold: {thresholds.sound} RMS
-            </Text>
-            <View style={styles.progressBarTrack}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  {
-                    width: `${Math.round(soundPct * 100)}%`,
-                    backgroundColor: metrics.soundTriggered ? "#DC2626" : "#D97706",
-                  },
-                ]}
-              />
-            </View>
-          </View>
+              >
+                {level === "low" ? "Low Shock" : level === "medium" ? "Normal" : "High (Hike)"}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-
-        {/* Fusion Logic Status */}
-        <View style={styles.fusionRuleBar}>
-          <Info size={13} color="#64748B" />
-          <Text style={styles.fusionRuleText}>
-            Fusion Rule: Confirms distress if (Impact + Rotation) or (Impact +
-            Acoustic Shout) within 2.0s window.
-          </Text>
-        </View>
-
-        {metrics.windowActive && (
-          <View style={styles.activeWindowBanner}>
-            <Radio size={14} color="#DC2626" />
-            <Text style={styles.activeWindowText}>
-              Distress Correlation Window Active:{" "}
-              {(metrics.timeRemainingMs / 1000).toFixed(1)}s remaining
-            </Text>
-          </View>
-        )}
       </View>
+
+      {/* ── COLLAPSIBLE HARDWARE TELEMETRY TOGGLE ────────────────────── */}
+      <TouchableOpacity
+        style={styles.diagToggleBar}
+        onPress={() => setShowDiagnostics(!showDiagnostics)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.diagToggleLeft}>
+          <Activity size={13} color="#64748B" />
+          <Text style={styles.diagToggleTitle}>
+            {showDiagnostics ? "Hide Sensor Telemetry" : "Show Sensor Fusion Telemetry (50Hz)"}
+          </Text>
+        </View>
+        <Text style={styles.diagToggleAction}>{showDiagnostics ? "Hide" : "Show"}</Text>
+      </TouchableOpacity>
+
+      {/* ── LIVE MULTI-SENSOR TELEMETRY GAUGES (OPTIONAL EXPANSION) ── */}
+      {showDiagnostics && (
+        <View style={styles.gaugesContainer}>
+          <View style={styles.gaugesHeader}>
+            <Text style={styles.gaugesTitle}>REAL-TIME HARDWARE SENSOR FUSION</Text>
+            <Text style={styles.sensitivityBadge}>
+              {preferences.sensitivity.toUpperCase()} SENSITIVITY
+            </Text>
+          </View>
+
+          <View style={styles.gaugesGrid}>
+            {/* Acceleration Sensor */}
+            <View style={styles.gaugeCard}>
+              <View style={styles.gaugeHeaderRow}>
+                <View style={styles.sensorIconRow}>
+                  <Activity size={14} color="#0284C7" />
+                  <Text style={styles.gaugeName}>ACCELEROMETER</Text>
+                </View>
+                {metrics.accelTriggered && (
+                  <View style={styles.triggerBadge}>
+                    <Text style={styles.triggerBadgeText}>TRIGGERED</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.gaugeValue}>
+                {metrics.lastAccel.toFixed(2)}{" "}
+                <Text style={styles.gaugeUnit}>m/s²</Text>
+              </Text>
+              <Text style={styles.gaugeThreshold}>
+                Threshold: {thresholds.accel.toFixed(1)} m/s²
+              </Text>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.round(accelPct * 100)}%`,
+                      backgroundColor: metrics.accelTriggered ? "#DC2626" : "#0284C7",
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+
+            {/* Gyroscope Sensor */}
+            <View style={styles.gaugeCard}>
+              <View style={styles.gaugeHeaderRow}>
+                <View style={styles.sensorIconRow}>
+                  <RotateCw size={14} color="#7C3AED" />
+                  <Text style={styles.gaugeName}>GYROSCOPE</Text>
+                </View>
+                {metrics.gyroTriggered && (
+                  <View style={styles.triggerBadge}>
+                    <Text style={styles.triggerBadgeText}>TRIGGERED</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.gaugeValue}>
+                {metrics.lastGyro.toFixed(2)}{" "}
+                <Text style={styles.gaugeUnit}>rad/s</Text>
+              </Text>
+              <Text style={styles.gaugeThreshold}>
+                Threshold: {thresholds.gyro.toFixed(1)} rad/s
+              </Text>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.round(gyroPct * 100)}%`,
+                      backgroundColor: metrics.gyroTriggered ? "#DC2626" : "#7C3AED",
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+
+            {/* Acoustic Sound Sensor */}
+            <View style={styles.gaugeCard}>
+              <View style={styles.gaugeHeaderRow}>
+                <View style={styles.sensorIconRow}>
+                  <Volume2 size={14} color="#D97706" />
+                  <Text style={styles.gaugeName}>ACOUSTIC MIC</Text>
+                </View>
+                {metrics.soundTriggered && (
+                  <View style={styles.triggerBadge}>
+                    <Text style={styles.triggerBadgeText}>TRIGGERED</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.gaugeValue}>
+                {metrics.lastSound}{" "}
+                <Text style={styles.gaugeUnit}>RMS</Text>
+              </Text>
+              <Text style={styles.gaugeThreshold}>
+                Threshold: {thresholds.sound} RMS
+              </Text>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.round(soundPct * 100)}%`,
+                      backgroundColor: metrics.soundTriggered ? "#DC2626" : "#D97706",
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Fusion Logic Status */}
+          <View style={styles.fusionRuleBar}>
+            <Info size={13} color="#64748B" />
+            <Text style={styles.fusionRuleText}>
+              Fusion Rule: Confirms distress if (Impact + Rotation) or (Impact +
+              Acoustic Shout) within 2.0s window.
+            </Text>
+          </View>
+
+          {metrics.windowActive && (
+            <View style={styles.activeWindowBanner}>
+              <Radio size={14} color="#DC2626" />
+              <Text style={styles.activeWindowText}>
+                Distress Correlation Window Active:{" "}
+                {(metrics.timeRemainingMs / 1000).toFixed(1)}s remaining
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* ── DEMO & SIMULATION CONTROLS ───────────────────────────────── */}
       <View style={styles.demoSection}>
@@ -1334,5 +1379,71 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     fontSize: 15,
     letterSpacing: 0.5,
+  },
+  ambientPillSection: {
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  ambientPillTitle: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#64748B",
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  sensitivityPillsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  sensitivityPillBtn: {
+    flex: 1,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sensitivityPillBtnActive: {
+    backgroundColor: "#ECFDF5",
+    borderColor: "#10B981",
+  },
+  sensitivityPillText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  sensitivityPillTextActive: {
+    color: "#059669",
+    fontWeight: "800",
+  },
+  diagToggleBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#F8FAFC",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  diagToggleLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  diagToggleTitle: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  diagToggleAction: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#0284C7",
   },
 });

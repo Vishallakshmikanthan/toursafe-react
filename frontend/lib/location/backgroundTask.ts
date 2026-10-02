@@ -23,11 +23,15 @@ export function unregisterBackgroundUpdateCallback() {
 // Define the background task if running on native mobile platform
 if (Platform.OS !== "web") {
   try {
-    // Dynamic require so Web bundle does not fail on TaskManager
     const TaskManager = require("expo-task-manager");
-    if (TaskManager && TaskManager.defineTask) {
-      TaskManager.defineTask(
-        TOURSAFE_BACKGROUND_LOCATION_TASK,
+    if (TaskManager && typeof TaskManager.defineTask === "function") {
+      const isAlreadyDefined = typeof TaskManager.isTaskDefined === "function" 
+        ? TaskManager.isTaskDefined(TOURSAFE_BACKGROUND_LOCATION_TASK) 
+        : false;
+
+      if (!isAlreadyDefined) {
+        TaskManager.defineTask(
+          TOURSAFE_BACKGROUND_LOCATION_TASK,
         async ({ data, error }: { data: any; error: any }) => {
           if (error) {
             console.warn("[BackgroundTask] Error receiving background location:", error);
@@ -55,7 +59,8 @@ if (Platform.OS !== "web") {
             }
           }
         }
-      );
+        );
+      }
     }
   } catch (err) {
     console.debug("[BackgroundTask] TaskManager registration skipped:", err);

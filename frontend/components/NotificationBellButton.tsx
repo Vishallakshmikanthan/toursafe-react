@@ -48,7 +48,7 @@ export function NotificationBellButton({ apiBaseUrl = DEFAULT_API_BASE, authToke
         accessibilityRole="button"
         accessibilityLabel={`Notifications, ${unreadCount} unread`}
       >
-        <Bell size={18} color="#F8FAFC" />
+        <Bell size={18} color="#0F172A" />
         {unreadCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>
@@ -73,15 +73,19 @@ export function NotificationBellButton({ apiBaseUrl = DEFAULT_API_BASE, authToke
 
 const styles = StyleSheet.create({
   btn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(15, 23, 42, 0.75)",
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255, 255, 255, 0.92)",
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderColor: "#E2E8F0",
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   badge: {
     position: "absolute",
@@ -93,11 +97,16 @@ const styles = StyleSheet.create({
     height: 16,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 3,
+    paddingHorizontal: 4,
+    shadowColor: "#EF4444",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 3,
   },
   badgeText: {
     color: "#FFFFFF",
     fontSize: 9,
-    fontWeight: "700",
+    fontWeight: "800",
   },
 });

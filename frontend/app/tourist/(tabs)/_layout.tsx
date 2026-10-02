@@ -31,7 +31,7 @@ export default function TouristTabsLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: styles.tabBar,
-          tabBarActiveTintColor: "#059669",
+          tabBarActiveTintColor: "#0284C7",
           tabBarInactiveTintColor: "#64748B",
           tabBarLabelStyle: styles.tabBarLabel,
           tabBarItemStyle: styles.tabBarItem,
@@ -44,7 +44,7 @@ export default function TouristTabsLayout() {
             title: "Home",
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && styles.iconActive]}>
-                <ShieldCheck size={20} color={focused ? "#059669" : color} />
+                <ShieldCheck size={20} color={focused ? "#0284C7" : color} />
               </View>
             ),
           }}
@@ -57,7 +57,7 @@ export default function TouristTabsLayout() {
             title: "Map",
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && styles.iconActive]}>
-                <MapPin size={20} color={focused ? "#2563EB" : color} />
+                <MapPin size={20} color={focused ? "#0284C7" : color} />
               </View>
             ),
           }}
@@ -71,7 +71,7 @@ export default function TouristTabsLayout() {
             tabBarIcon: ({ focused }) => (
               <View style={styles.sosButtonContainer}>
                 <View style={styles.sosInnerButton}>
-                  <ShieldAlert size={22} color="#FFFFFF" />
+                  <ShieldAlert size={23} color="#FFFFFF" />
                 </View>
               </View>
             ),
@@ -87,7 +87,7 @@ export default function TouristTabsLayout() {
             title: "Digital ID",
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && styles.iconActive]}>
-                <CreditCard size={20} color={focused ? "#D97706" : color} />
+                <CreditCard size={20} color={focused ? "#0284C7" : color} />
               </View>
             ),
           }}
@@ -100,7 +100,7 @@ export default function TouristTabsLayout() {
             title: "Profile",
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && styles.iconActive]}>
-                <User size={20} color={focused ? "#7C3AED" : color} />
+                <User size={20} color={focused ? "#0284C7" : color} />
               </View>
             ),
           }}
@@ -139,36 +139,45 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
   tabBar: {
-    backgroundColor: "#FFFFFF",
+    position: "absolute",
+    bottom: Platform.OS === "ios" ? 22 : 14,
+    left: 14,
+    right: 14,
+    height: 66,
+    borderRadius: 33,
+    backgroundColor: "rgba(255, 255, 255, 0.94)",
+    borderWidth: 1,
+    borderColor: "rgba(226, 232, 240, 0.9)",
     borderTopWidth: 1,
-    borderTopColor: "#E2E8F0",
-    paddingBottom: Platform.OS === "ios" ? 22 : 8,
-    paddingTop: 8,
-    height: Platform.OS === "ios" ? 84 : 64,
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
+    borderTopColor: "rgba(226, 232, 240, 0.9)",
+    paddingBottom: 6,
+    paddingTop: 6,
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
     elevation: 8,
   },
   tabBarItem: {
-    paddingVertical: 2,
+    paddingVertical: 1,
   },
   tabBarLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "700",
     letterSpacing: 0.2,
-    marginTop: 2,
+    marginTop: 1,
   },
   iconWrapper: {
     alignItems: "center",
     justifyContent: "center",
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   iconActive: {
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "rgba(2, 132, 199, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(2, 132, 199, 0.25)",
   },
   sosButtonContainer: {
     position: "relative",
@@ -179,22 +188,22 @@ const styles = StyleSheet.create({
     height: 52,
   },
   sosInnerButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: "#DC2626",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#DC2626",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.35,
     shadowRadius: 8,
-    elevation: 6,
-    borderWidth: 3,
-    borderColor: "#FFFFFF",
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.9)",
   },
   sosLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: "800",
     color: "#DC2626",
     letterSpacing: 0.5,

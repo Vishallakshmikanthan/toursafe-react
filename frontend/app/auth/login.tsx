@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   View,
   Text,
@@ -8,83 +8,80 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  useWindowDimensions,
-} from 'react-native';
+  Platform,
+} from "react-native";
 import {
   Mail,
   Lock,
   ArrowRight,
   Shield,
-  ShieldAlert,
-  User,
-  Users,
+  ShieldCheck,
   Building2,
-  CheckCircle2,
-  FileCheck,
+  Users,
   Fingerprint,
-} from 'lucide-react-native';
-import Toast from 'react-native-toast-message';
-import { useAuthStore } from '@/store/authStore';
+  ChevronLeft,
+  UserCheck,
+} from "lucide-react-native";
+import Toast from "react-native-toast-message";
+import { useAuthStore } from "@/store/authStore";
 
-type RoleTab = 'authority' | 'responder' | 'tourist';
+type RoleTab = "tourist" | "responder" | "authority";
 
 const PRESET_ACCOUNTS = {
-  authority: [
-    { email: 'admin@toursafe.com', label: 'Command Administrator' },
-    { email: 'admin@tnpol.gov.in', label: 'State Police Command' },
+  tourist: [
+    { email: "priya.sharma@gmail.com", label: "Priya Sharma (Tourist)" },
+    { email: "tourist@toursafe.in", label: "Standard Traveler" },
   ],
   responder: [
-    { email: 'unit1@tnpol.gov.in', label: 'Tactical Unit 1 (Patrol)' },
-    { email: 'medic1@toursafe.in', label: 'Emergency Medical Unit' },
+    { email: "unit1@tnpol.gov.in", label: "Tactical Unit 1 (Patrol)" },
+    { email: "medic1@toursafe.in", label: "Emergency Medical Unit" },
   ],
-  tourist: [
-    { email: 'priya.sharma@gmail.com', label: 'Verified Tourist Profile' },
-    { email: 'tourist@toursafe.in', label: 'Standard Traveler Profile' },
+  authority: [
+    { email: "admin@toursafe.com", label: "Command Administrator" },
+    { email: "admin@tnpol.gov.in", label: "State Police Command" },
   ],
 };
 
 export default function LoginPage() {
   const router = useRouter();
   const params = useLocalSearchParams<{ role?: string }>();
-  const { width } = useWindowDimensions();
-  const isCompact = width < 900;
 
   const initialTab: RoleTab =
-    params.role === 'tourist'
-      ? 'tourist'
-      : params.role === 'responder'
-      ? 'responder'
-      : 'authority';
+    params.role === "authority"
+      ? "authority"
+      : params.role === "responder"
+      ? "responder"
+      : "tourist";
 
   const [tab, setTab] = useState<RoleTab>(initialTab);
   const [email, setEmail] = useState(PRESET_ACCOUNTS[initialTab][0].email);
-  const [password, setPassword] = useState('admin@123');
+  const [password, setPassword] = useState("admin@123");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuthStore();
+  const { login, setUser } = useAuthStore();
 
   function selectTab(nextTab: RoleTab) {
     setTab(nextTab);
     setEmail(PRESET_ACCOUNTS[nextTab][0].email);
-    setPassword('admin@123');
+    setPassword("admin@123");
   }
 
   async function handleLogin() {
     if (!email || !password) {
       Toast.show({
-        type: 'error',
-        text1: 'Validation Error',
-        text2: 'Please provide both email and password.',
+        type: "error",
+        text1: "Validation Error",
+        text2: "Please provide both email and password.",
       });
       return;
     }
 
     setLoading(true);
     try {
-      await login(email.trim() || `${tab}@toursafe.dev`, password || 'password');
+      await login(email.trim() || `${tab}@toursafe.dev`, password || "password");
       const currentUser = useAuthStore.getState().user;
       if (currentUser && tab && currentUser.role !== tab) {
-        useAuthStore.getState().setUser({
+        setUser({
           ...currentUser,
           role: tab,
         });
@@ -92,221 +89,244 @@ export default function LoginPage() {
 
       const finalRole = useAuthStore.getState().user?.role || tab;
       Toast.show({
-        type: 'success',
-        text1: 'Authentication Verified',
+        type: "success",
+        text1: "Authentication Verified",
         text2: `Welcome to TourSafe Portal`,
       });
 
-      if (finalRole === 'authority' || finalRole === 'admin') {
-        router.replace('/admin/(tabs)/dashboard');
-      } else if (finalRole === 'responder') {
-        router.replace('/responder');
+      if (finalRole === "authority" || finalRole === "admin") {
+        router.replace("/admin/(tabs)/dashboard");
+      } else if (finalRole === "responder") {
+        router.replace("/responder");
       } else {
-        router.replace('/tourist/(tabs)/dashboard');
+        router.replace("/tourist/(tabs)/dashboard");
       }
     } catch {
-      // Direct navigation fallback
-      if (tab === 'authority') {
-        router.replace('/admin/(tabs)/dashboard');
-      } else if (tab === 'responder') {
-        router.replace('/responder');
+      if (tab === "authority") {
+        router.replace("/admin/(tabs)/dashboard");
+      } else if (tab === "responder") {
+        router.replace("/responder");
       } else {
-        router.replace('/tourist/(tabs)/dashboard');
+        router.replace("/tourist/(tabs)/dashboard");
       }
     } finally {
       setLoading(false);
     }
   }
 
+  function handleBiometricLogin() {
+    setLoading(true);
+    setTimeout(() => {
+      setUser({
+        id: `usr_bio_${Date.now()}`,
+        email: email || `${tab}@toursafe.dev`,
+        full_name:
+          tab === "tourist"
+            ? "Priya Sharma (Verified)"
+            : tab === "responder"
+            ? "Tactical Officer"
+            : "Command Lead",
+        role: tab,
+      });
+
+      Toast.show({
+        type: "success",
+        text1: "Biometric Passkey Verified",
+        text2: "Signed in via device credentials.",
+      });
+
+      if (tab === "authority") {
+        router.replace("/admin/(tabs)/dashboard");
+      } else if (tab === "responder") {
+        router.replace("/responder");
+      } else {
+        router.replace("/tourist/(tabs)/dashboard");
+      }
+      setLoading(false);
+    }, 400);
+  }
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View style={[styles.card, isCompact && styles.cardCompact]}>
-        {/* Left Side: Brand, Identity & Security Badges */}
-        <View style={[styles.leftPane, isCompact && styles.leftPaneCompact]}>
-          <View>
-            <View style={styles.logoRow}>
-              <View style={styles.logo}>
-                <Shield size={26} color="#ffffff" />
-              </View>
-              <View>
-                <Text style={styles.brand}>TourSafe</Text>
-                <Text style={styles.brandSub}>Government Safety & Command Infrastructure</Text>
-              </View>
-            </View>
-
-            <Text style={styles.heroTitle}>Authoritative Access to National Safety Network</Text>
-            <Text style={styles.heroBody}>
-              Encrypted gateway connecting emergency dispatch operators, tactical field units, and verified travelers.
-              Protected under DPDP Act 2023 and zero-trust access control protocols.
-            </Text>
-
-            <View style={styles.credentialHelperBox}>
-              <Text style={styles.helperTitle}>Quick Access Profiles</Text>
-              <View style={styles.helperChips}>
-                {PRESET_ACCOUNTS[tab].map((acc) => (
-                  <TouchableOpacity
-                    key={acc.email}
-                    style={[styles.helperChip, email === acc.email && styles.helperChipActive]}
-                    onPress={() => {
-                      setEmail(acc.email);
-                      setPassword('admin@123');
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.helperChipText, email === acc.email && styles.helperChipTextActive]}>
-                      {acc.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.securityFooter}>
-            <View style={styles.securityItem}>
-              <Lock size={14} color="#94A3B8" />
-              <Text style={styles.securityText}>TLS 1.3 / AES-256 Bit Encryption</Text>
-            </View>
-            <View style={styles.securityItem}>
-              <Fingerprint size={14} color="#94A3B8" />
-              <Text style={styles.securityText}>Cryptographically Verified Sessions</Text>
-            </View>
-          </View>
+      {/* Top Mobile Bar with Back Navigation */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.replace("/")}
+          activeOpacity={0.7}
+        >
+          <ChevronLeft size={22} color="#0F172A" />
+        </TouchableOpacity>
+        <View style={styles.topLogo}>
+          <Shield size={18} color="#0284C7" />
+          <Text style={styles.topLogoText}>TourSafe Auth</Text>
         </View>
+        <View style={{ width: 40 }} />
+      </View>
 
-        {/* Right Side: Role Selector & Login Form */}
-        <View style={[styles.rightPane, isCompact && styles.rightPaneCompact]}>
-          {/* Tab Selector */}
-          <View style={styles.tabBar}>
+      {/* Hero Title */}
+      <View style={styles.headerBlock}>
+        <Text style={styles.title}>Sign In to TourSafe</Text>
+        <Text style={styles.subtitle}>
+          Secure identity verification and emergency dispatch gateway.
+        </Text>
+      </View>
+
+      {/* 1-Tap Role Selector Pills */}
+      <View style={styles.roleTabsContainer}>
+        <TouchableOpacity
+          style={[styles.roleTab, tab === "tourist" && styles.roleTabActive]}
+          onPress={() => selectTab("tourist")}
+          activeOpacity={0.8}
+        >
+          <UserCheck size={16} color={tab === "tourist" ? "#FFFFFF" : "#64748B"} />
+          <Text
+            style={[
+              styles.roleTabText,
+              tab === "tourist" && styles.roleTabTextActive,
+            ]}
+          >
+            Tourist
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.roleTab, tab === "responder" && styles.roleTabActive]}
+          onPress={() => selectTab("responder")}
+          activeOpacity={0.8}
+        >
+          <Users size={16} color={tab === "responder" ? "#FFFFFF" : "#64748B"} />
+          <Text
+            style={[
+              styles.roleTabText,
+              tab === "responder" && styles.roleTabTextActive,
+            ]}
+          >
+            Responder
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.roleTab, tab === "authority" && styles.roleTabActive]}
+          onPress={() => selectTab("authority")}
+          activeOpacity={0.8}
+        >
+          <Building2 size={16} color={tab === "authority" ? "#FFFFFF" : "#64748B"} />
+          <Text
+            style={[
+              styles.roleTabText,
+              tab === "authority" && styles.roleTabTextActive,
+            ]}
+          >
+            Command
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Quick Access Account Preset Chips */}
+      <View style={styles.presetSection}>
+        <Text style={styles.presetLabel}>Quick Select Profile:</Text>
+        <View style={styles.presetChipsRow}>
+          {PRESET_ACCOUNTS[tab].map((acc) => (
             <TouchableOpacity
-              onPress={() => selectTab('authority')}
-              style={[styles.tab, tab === 'authority' && styles.tabActiveAuthority]}
-              activeOpacity={0.85}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: tab === 'authority' }}
-            >
-              <Building2 size={16} color={tab === 'authority' ? '#1A3C6E' : '#64748B'} />
-              <Text style={[styles.tabText, tab === 'authority' && styles.tabTextActiveAuthority]}>
-                Authority
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => selectTab('responder')}
-              style={[styles.tab, tab === 'responder' && styles.tabActiveResponder]}
-              activeOpacity={0.85}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: tab === 'responder' }}
-            >
-              <Users size={16} color={tab === 'responder' ? '#C2410C' : '#64748B'} />
-              <Text style={[styles.tabText, tab === 'responder' && styles.tabTextActiveResponder]}>
-                Responder
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => selectTab('tourist')}
-              style={[styles.tab, tab === 'tourist' && styles.tabActiveTourist]}
-              activeOpacity={0.85}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: tab === 'tourist' }}
-            >
-              <User size={16} color={tab === 'tourist' ? '#046A38' : '#64748B'} />
-              <Text style={[styles.tabText, tab === 'tourist' && styles.tabTextActiveTourist]}>
-                Tourist
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>
-              {tab === 'authority'
-                ? 'Authority Command Login'
-                : tab === 'responder'
-                ? 'Field Responder Authentication'
-                : 'Tourist Companion Sign In'}
-            </Text>
-            <Text style={styles.formSubtitle}>
-              {tab === 'authority'
-                ? 'Access central dispatch, safety zones, and AI intelligence.'
-                : tab === 'responder'
-                ? 'Access tactical mission queue and GPS routing.'
-                : 'Access travel safety dashboard, SOS, and digital ID.'}
-            </Text>
-
-            <View style={styles.inputBlock}>
-              <Text style={styles.label}>Email Address</Text>
-              <View style={styles.inputWrapper}>
-                <Mail size={16} color="#94A3B8" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="operator@toursafe.gov.in"
-                  placeholderTextColor="#94A3B8"
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  accessibilityLabel="Email Address Input"
-                />
-              </View>
-            </View>
-
-            <View style={styles.inputBlock}>
-              <Text style={styles.label}>Password / Access Key</Text>
-              <View style={styles.inputWrapper}>
-                <Lock size={16} color="#94A3B8" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="••••••••"
-                  placeholderTextColor="#94A3B8"
-                  secureTextEntry
-                  accessibilityLabel="Password Input"
-                />
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={handleLogin}
-              disabled={loading}
+              key={acc.email}
               style={[
-                styles.submitButton,
-                tab === 'authority'
-                  ? styles.submitAuthority
-                  : tab === 'responder'
-                  ? styles.submitResponder
-                  : styles.submitTourist,
-                loading && styles.submitDisabled,
+                styles.presetChip,
+                email === acc.email && styles.presetChipActive,
               ]}
-              activeOpacity={0.88}
-              accessibilityRole="button"
-              accessibilityLabel="Sign in to TourSafe"
+              onPress={() => {
+                setEmail(acc.email);
+                setPassword("admin@123");
+              }}
+              activeOpacity={0.7}
             >
-              {loading ? (
-                <ActivityIndicator color="#ffffff" size="small" />
-              ) : (
-                <>
-                  <Text style={styles.submitButtonText}>Authenticate & Enter</Text>
-                  <ArrowRight size={16} color="#ffffff" />
-                </>
-              )}
+              <Text
+                style={[
+                  styles.presetChipText,
+                  email === acc.email && styles.presetChipTextActive,
+                ]}
+              >
+                {acc.label}
+              </Text>
             </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
-            <View style={styles.registerRow}>
-              <Text style={styles.registerPrompt}>Need a new registration? </Text>
-              <TouchableOpacity onPress={() => router.push('/auth/register')}>
-                <Text style={styles.registerLink}>Register Authority Profile</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.homeReturnRow}>
-              <TouchableOpacity onPress={() => router.replace('/')}>
-                <Text style={styles.homeReturnText}>← Back to TourSafe Portal</Text>
-              </TouchableOpacity>
-            </View>
+      {/* Form Inputs */}
+      <View style={styles.formContainer}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Email Address</Text>
+          <View style={styles.inputWrapper}>
+            <Mail size={18} color="#94A3B8" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="name@domain.com"
+              placeholderTextColor="#94A3B8"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
           </View>
         </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputWrapper}>
+            <Lock size={18} color="#94A3B8" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="••••••••"
+              placeholderTextColor="#94A3B8"
+              secureTextEntry
+            />
+          </View>
+        </View>
+
+        {/* Primary Login Button */}
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={handleLogin}
+          disabled={loading}
+          activeOpacity={0.85}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <>
+              <Text style={styles.loginButtonText}>Continue to Safety Hub</Text>
+              <ArrowRight size={18} color="#FFFFFF" />
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Biometric Simulation Button */}
+        <TouchableOpacity
+          style={styles.biometricButton}
+          onPress={handleBiometricLogin}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          <Fingerprint size={20} color="#0284C7" />
+          <Text style={styles.biometricButtonText}>
+            Continue with Face ID / Biometrics
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Register Option */}
+      <View style={styles.registerRow}>
+        <Text style={styles.registerText}>Don't have a verified travel pass?</Text>
+        <TouchableOpacity
+          onPress={() => router.push("/auth/register")}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.registerLink}>Register</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -315,288 +335,209 @@ export default function LoginPage() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#0B132B',
+    backgroundColor: "#F8FAFC",
   },
   content: {
-    padding: 20,
-    minHeight: '100%',
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 32,
   },
-  card: {
-    maxWidth: 1100,
-    width: '100%',
-    alignSelf: 'center',
-    borderRadius: 24,
-    overflow: 'hidden',
-    backgroundColor: '#ffffff',
-    flexDirection: 'row',
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 30,
-    shadowOffset: { width: 0, height: 16 },
-    elevation: 14,
-  },
-  cardCompact: {
-    flexDirection: 'column',
-  },
-  leftPane: {
-    flex: 1,
-    backgroundColor: '#1C2541',
-    padding: 36,
-    justifyContent: 'space-between',
-  },
-  leftPaneCompact: {
-    padding: 24,
-    minHeight: 280,
-  },
-  logoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    marginBottom: 28,
-  },
-  logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#1A3C6E',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brand: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#ffffff',
-    letterSpacing: -0.4,
-  },
-  brandSub: {
-    marginTop: 2,
-    fontSize: 12,
-    color: '#94A3B8',
-  },
-  heroTitle: {
-    fontSize: 26,
-    lineHeight: 34,
-    fontWeight: '800',
-    color: '#ffffff',
-    letterSpacing: -0.4,
-    marginBottom: 12,
-  },
-  heroBody: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#CBD5E1',
-    marginBottom: 24,
-  },
-  credentialHelperBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 14,
-    padding: 14,
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
-  helperTitle: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#94A3B8',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: 10,
-  },
-  helperChips: {
-    gap: 8,
-  },
-  helperChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.94)",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: "#E2E8F0",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
-  helperChipActive: {
-    backgroundColor: '#1A3C6E',
-    borderColor: '#3B82F6',
+  topLogo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
-  helperChipText: {
-    fontSize: 12,
-    color: '#CBD5E1',
+  topLogoText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#0F172A",
   },
-  helperChipTextActive: {
-    color: '#ffffff',
-    fontWeight: '700',
+  headerBlock: {
+    marginBottom: 24,
   },
-  securityFooter: {
-    gap: 8,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  title: {
+    fontSize: 26,
+    fontWeight: "900",
+    color: "#0F172A",
+    letterSpacing: -0.5,
+    marginBottom: 6,
   },
-  securityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  subtitle: {
+    fontSize: 14,
+    color: "#64748B",
+    lineHeight: 20,
   },
-  securityText: {
-    fontSize: 11,
-    color: '#94A3B8',
-  },
-  rightPane: {
-    flex: 1.1,
-    backgroundColor: '#ffffff',
-    padding: 36,
-  },
-  rightPaneCompact: {
-    padding: 24,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 12,
+  roleTabsContainer: {
+    flexDirection: "row",
+    backgroundColor: "#F1F5F9",
     padding: 4,
-    marginBottom: 28,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
   },
-  tab: {
+  roleTab: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 12,
   },
-  tabActiveAuthority: {
-    backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
+  roleTabActive: {
+    backgroundColor: "#0284C7",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
     elevation: 2,
   },
-  tabActiveResponder: {
-    backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
-  },
-  tabActiveTourist: {
-    backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
-  },
-  tabText: {
+  roleTabText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
+    fontWeight: "700",
+    color: "#64748B",
   },
-  tabTextActiveAuthority: {
-    color: '#1A3C6E',
-    fontWeight: '700',
+  roleTabTextActive: {
+    color: "#FFFFFF",
   },
-  tabTextActiveResponder: {
-    color: '#C2410C',
-    fontWeight: '700',
+  presetSection: {
+    marginBottom: 20,
   },
-  tabTextActiveTourist: {
-    color: '#046A38',
-    fontWeight: '700',
+  presetLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#64748B",
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  presetChipsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  presetChip: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  presetChipActive: {
+    backgroundColor: "#F0F9FF",
+    borderColor: "#0284C7",
+  },
+  presetChipText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  presetChipTextActive: {
+    color: "#0284C7",
+    fontWeight: "700",
   },
   formContainer: {
     gap: 16,
   },
-  formTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#0F172A',
-    letterSpacing: -0.3,
-  },
-  formSubtitle: {
-    fontSize: 13,
-    color: '#64748B',
-    marginBottom: 8,
-  },
-  inputBlock: {
+  inputGroup: {
     gap: 6,
   },
   label: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#334155',
+    fontWeight: "700",
+    color: "#475569",
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderColor: "#CBD5E1",
+    paddingHorizontal: 14,
+    height: 52,
   },
   inputIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   input: {
     flex: 1,
-    paddingVertical: 11,
     fontSize: 14,
-    color: '#0F172A',
+    color: "#0F172A",
+    height: "100%",
   },
-  submitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  loginButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    paddingVertical: 13,
-    borderRadius: 10,
+    backgroundColor: "#0284C7",
+    height: 52,
+    borderRadius: 16,
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
     marginTop: 8,
   },
-  submitAuthority: {
-    backgroundColor: '#1A3C6E',
+  loginButtonText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#FFFFFF",
   },
-  submitResponder: {
-    backgroundColor: '#FF6B00',
+  biometricButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "rgba(240, 249, 255, 0.9)",
+    height: 50,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(2, 132, 199, 0.25)",
   },
-  submitTourist: {
-    backgroundColor: '#046A38',
-  },
-  submitDisabled: {
-    opacity: 0.65,
-  },
-  submitButtonText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#ffffff',
+  biometricButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0284C7",
   },
   registerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 24,
   },
-  registerPrompt: {
-    fontSize: 12,
-    color: '#64748B',
+  registerText: {
+    fontSize: 13,
+    color: "#64748B",
   },
   registerLink: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1A3C6E',
-  },
-  homeReturnRow: {
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  homeReturnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0284C7",
   },
 });

@@ -4,6 +4,7 @@
     "slug": "toursafe-mobile",
     "scheme": "toursafe",
     "version": "1.0.0",
+    "newArchEnabled": true,
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "backgroundColor": "#F7F8FA",

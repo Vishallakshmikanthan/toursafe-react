@@ -1,11 +1,10 @@
 /**
  * TourSafe Tourist Live Safety Map & Corridor Navigator
- * Premium Full-Screen Interactive Geospatial Safety HUD:
- * - Real-time GPS Location with Satellite Lock & Precision Ring
- * - Monitored Safe Zones, Safe Corridors & Risk Geofences
- * - Category Filter Chips (All, Safe Havens, Police Kiosks, Medical, Waypoints)
- * - Floating Executive Control HUD (Recenter, Layer Toggle, Refresh, SOS)
- * - Interactive Bottom Safety Intelligence Drawer with Rapid Emergency Triggers
+ * Mobile-First Geospatial Experience:
+ * 1. Full-Bleed Map Canvas (100% Edge-to-Edge)
+ * 2. Minimalist Floating HUD (Top-Left Zone Capsule, Top-Right Action Stack)
+ * 3. Native Draggable Bottom Sheet (Peek -> Half -> Full Snap States)
+ * 4. Safe Corridors, Police Kiosks, Medical Aid & Danger Zone Polygons
  */
 
 import React, { useEffect, useState, useMemo } from "react";
@@ -17,39 +16,37 @@ import {
   ScrollView,
   Platform,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import RealMap, { ZonePolygonProp, MapMarkerProp } from "@/components/RealMap";
 import { useLocationStore } from "@/store/locationStore";
 import { useGeofenceStore } from "@/store/geofenceStore";
 import { useTripStore } from "@/store/tripStore";
 import { useSOSStore } from "@/store/sosStore";
-import { trackingSessionService } from "@/lib/tracking-session/trackingSessionService";
 import { geofenceApi } from "@/lib/api";
+import { DraggableBottomSheet } from "@/components/mobile/DraggableBottomSheet";
 import {
   ShieldCheck,
   ShieldAlert,
   Shield,
-  Radio,
   Layers,
   Crosshair,
-  X,
-  Phone,
-  Compass,
   MapPin,
   RefreshCw,
-  Navigation,
+  Phone,
+  Compass,
   AlertTriangle,
   Building2,
   HeartPulse,
-  ExternalLink,
-  ChevronUp,
-  ChevronDown,
+  Navigation,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react-native";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 import type { ZoneDefinition } from "@/types";
 
-type ZoneCategory = "all" | "safe" | "caution" | "police" | "medical" | "waypoints";
+type ZoneCategory = "all" | "safe" | "caution" | "police" | "medical";
 
 export default function TouristMapScreen() {
   const router = useRouter();
@@ -62,9 +59,7 @@ export default function TouristMapScreen() {
   const [selectedZone, setSelectedZone] = useState<ZoneDefinition | null>(null);
   const [loadingZones, setLoadingZones] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<ZoneCategory>("all");
-  const [showPolygons, setShowPolygons] = useState(true);
-  const [drawerExpanded, setDrawerExpanded] = useState(true);
-  const [actionInProgress, setActionInProgress] = useState(false);
+  const [mapType, setMapType] = useState<"standard" | "satellite">("standard");
 
   const defaultLat = currentLocation?.latitude || 10.2381;
   const defaultLng = currentLocation?.longitude || 77.4892;
@@ -82,14 +77,14 @@ export default function TouristMapScreen() {
         return;
       }
       throw new Error("Using fallback Kodaikanal tourist map zones");
-    } catch (e) {
+    } catch {
       setAllZones([
         {
-          id: 'zone-001',
-          name: 'Kodaikanal Lake Safe Zone',
-          description: 'Town center tourism and boat club hub with 24/7 patrol.',
-          risk_level: 'low',
-          zone_type: 'safe',
+          id: "zone-001",
+          name: "Kodaikanal Lake Safe Zone",
+          description: "Town center tourism and boat club hub with 24/7 patrol.",
+          risk_level: "low",
+          zone_type: "safe",
           latitude: 10.2381,
           longitude: 77.4892,
           radius: 500,
@@ -101,11 +96,11 @@ export default function TouristMapScreen() {
           ],
         } as any,
         {
-          id: 'zone-002',
+          id: "zone-002",
           name: "Guna Caves (Devil's Kitchen)",
-          description: 'Restricted deep rock fissures and vertical drop hazard.',
-          risk_level: 'high',
-          zone_type: 'danger',
+          description: "Restricted deep rock fissures and vertical drop hazard.",
+          risk_level: "high",
+          zone_type: "danger",
           latitude: 10.2167,
           longitude: 77.4833,
           radius: 350,
@@ -117,51 +112,35 @@ export default function TouristMapScreen() {
           ],
         } as any,
         {
-          id: 'zone-003',
+          id: "zone-003",
           name: "Coaker's Walk Ridge Trail",
-          description: 'High altitude 2,133m walking ridge. Steep slope caution.',
-          risk_level: 'medium',
-          zone_type: 'warning',
+          description: "High altitude 2,133m walking ridge. Steep slope caution.",
+          risk_level: "medium",
+          zone_type: "warning",
           latitude: 10.2291,
           longitude: 77.4947,
           radius: 400,
           coordinates: [
-            { latitude: 10.234, longitude: 77.490 },
+            { latitude: 10.234, longitude: 77.49 },
             { latitude: 10.234, longitude: 77.499 },
             { latitude: 10.224, longitude: 77.499 },
-            { latitude: 10.224, longitude: 77.490 },
+            { latitude: 10.224, longitude: 77.49 },
           ],
         } as any,
         {
-          id: 'zone-005',
-          name: 'Pillar Rocks Viewpoint',
-          description: 'Vertical granite cliff formation with designated viewing platform.',
-          risk_level: 'medium',
-          zone_type: 'warning',
-          latitude: 10.2194,
-          longitude: 77.4736,
+          id: "zone-005",
+          name: "Pillar Rocks Viewpoint",
+          description: "Vertical granite cliff formation with designated viewing platform.",
+          risk_level: "medium",
+          zone_type: "warning",
+          latitude: 10.21,
+          longitude: 77.47,
           radius: 300,
           coordinates: [
-            { latitude: 10.224, longitude: 77.469 },
-            { latitude: 10.224, longitude: 77.478 },
-            { latitude: 10.214, longitude: 77.478 },
-            { latitude: 10.214, longitude: 77.469 },
-          ],
-        } as any,
-        {
-          id: 'zone-008',
-          name: "Vattakanal & Dolphin's Nose",
-          description: 'Mountain ridge trek and cliff lookout point. Dense mist zone.',
-          risk_level: 'medium',
-          zone_type: 'warning',
-          latitude: 10.2050,
-          longitude: 77.4650,
-          radius: 450,
-          coordinates: [
-            { latitude: 10.211, longitude: 77.459 },
-            { latitude: 10.211, longitude: 77.471 },
-            { latitude: 10.199, longitude: 77.471 },
-            { latitude: 10.199, longitude: 77.459 },
+            { latitude: 10.215, longitude: 77.466 },
+            { latitude: 10.215, longitude: 77.475 },
+            { latitude: 10.206, longitude: 77.475 },
+            { latitude: 10.206, longitude: 77.466 },
           ],
         } as any,
       ]);
@@ -170,33 +149,11 @@ export default function TouristMapScreen() {
     }
   }
 
-  async function handleToggleTracking() {
-    setActionInProgress(true);
-    try {
-      if (trackingStatus === "active") {
-        await trackingSessionService.stopTracking();
-        Toast.show({ type: "info", text1: "Tracking Paused", text2: "Live GPS recording paused." });
-      } else {
-        const res = await trackingSessionService.startTracking();
-        if (res.success) {
-          Toast.show({ type: "success", text1: "Tracking Active", text2: "Live GPS safety stream active." });
-        } else {
-          Toast.show({ type: "error", text1: "Error", text2: res.error || "Could not start session" });
-        }
-      }
-    } catch (err: any) {
-      Toast.show({ type: "error", text1: "Error", text2: err?.message || "Action failed" });
-    } finally {
-      setActionInProgress(false);
-    }
-  }
-
-  // Filtered zones based on category
+  // Filter zones by category
   const filteredZones = useMemo(() => {
-    if (selectedCategory === "all") return allZones;
     if (selectedCategory === "safe") {
       return allZones.filter(
-        (z) => !z.risk_level || z.risk_level.toLowerCase() === "low" || z.risk_level.toLowerCase() === "safe"
+        (z) => z.risk_level?.toLowerCase() === "low" || z.zone_type === "safe"
       );
     }
     if (selectedCategory === "caution") {
@@ -204,7 +161,8 @@ export default function TouristMapScreen() {
         (z) =>
           z.risk_level?.toLowerCase() === "medium" ||
           z.risk_level?.toLowerCase() === "high" ||
-          z.risk_level?.toLowerCase() === "critical"
+          z.zone_type === "danger" ||
+          z.zone_type === "warning"
       );
     }
     return allZones;
@@ -212,7 +170,6 @@ export default function TouristMapScreen() {
 
   // Convert filtered zones to RealMap polygon format
   const mapPolygons: ZonePolygonProp[] = useMemo(() => {
-    if (!showPolygons) return [];
     return filteredZones
       .map((zone) => {
         const coords =
@@ -227,9 +184,9 @@ export default function TouristMapScreen() {
         };
       })
       .filter((p) => p.coordinates.length > 2);
-  }, [filteredZones, showPolygons]);
+  }, [filteredZones]);
 
-  // Build markers for user location, safe havens, and itinerary stops
+  // Build markers for user location, safe havens, and emergency posts
   const mapMarkers: MapMarkerProp[] = useMemo(() => {
     const markers: MapMarkerProp[] = [];
 
@@ -239,731 +196,537 @@ export default function TouristMapScreen() {
         latitude: currentLocation.latitude,
         longitude: currentLocation.longitude,
         title: "Your Verified Location",
-        subtitle: `Precision: ±${(currentLocation.accuracy || 4).toFixed(0)}m • Tracking ${
-          trackingStatus === "active" ? "Live" : "Standby"
-        }`,
+        subtitle: `Precision: ±${(currentLocation.accuracy || 4).toFixed(0)}m • Tracking Active`,
         color: "#0284C7",
         icon: "📍",
       });
     }
 
-    // Itinerary Stops
-    if (
-      (selectedCategory === "all" || selectedCategory === "waypoints") &&
-      activeTrip?.itinerary_stops
-    ) {
+    // Nearby Police Kiosk
+    if (selectedCategory === "all" || selectedCategory === "police") {
+      markers.push({
+        latitude: defaultLat + 0.007,
+        longitude: defaultLng - 0.006,
+        title: "Police Kiosk #4 (Lake Patrol)",
+        subtitle: "24/7 Rapid Response Post • Tel: 112",
+        color: "#059669",
+        icon: "🛡️",
+      });
+    }
+
+    // Nearby Medical Aid
+    if (selectedCategory === "all" || selectedCategory === "medical") {
+      markers.push({
+        latitude: defaultLat - 0.006,
+        longitude: defaultLng + 0.008,
+        title: "Van Allen Emergency Medical Center",
+        subtitle: "24/7 Trauma Unit • Tel: 108",
+        color: "#DC2626",
+        icon: "🏥",
+      });
+    }
+
+    // Suggested Waypoints
+    if (activeTrip?.itinerary_stops) {
       activeTrip.itinerary_stops.forEach((stop, idx) => {
         markers.push({
           latitude: defaultLat + (idx + 1) * 0.006,
           longitude: defaultLng + (idx + 1) * 0.006,
-          title: `Stop ${idx + 1}: ${stop.name}`,
-          subtitle: stop.location || "Planned Safe Waypoint",
+          title: stop.name,
+          subtitle: stop.location || "Safe Waypoint",
           color: "#2563EB",
           icon: "🧭",
         });
       });
     }
 
-    // Nearby Police & Medical Kiosks (Curated POIs)
-    if (selectedCategory === "all" || selectedCategory === "police") {
-      markers.push({
-        latitude: defaultLat + 0.008,
-        longitude: defaultLng - 0.007,
-        title: "Tourist Assistance Police Kiosk #4",
-        subtitle: "24/7 Rapid Response Unit • Tel: 112",
-        color: "#059669",
-        icon: "🛡️",
-      });
-    }
-
-    if (selectedCategory === "all" || selectedCategory === "medical") {
-      markers.push({
-        latitude: defaultLat - 0.007,
-        longitude: defaultLng + 0.009,
-        title: "District Trauma & Medical Aid Post",
-        subtitle: "Emergency Ambulance Unit • Tel: 108",
-        color: "#DC2626",
-        icon: "🏥",
-      });
-    }
-
     return markers;
-  }, [currentLocation, trackingStatus, activeTrip, selectedCategory, defaultLat, defaultLng]);
+  }, [currentLocation, defaultLat, defaultLng, selectedCategory, activeTrip]);
 
-  const activeZoneCount = activeZones?.length || 0;
-  const currentSafeZoneName =
-    activeZoneCount > 0 ? activeZones[0].name : "Standard Monitored Tourism Area";
+  const toggleMapLayer = () => {
+    setMapType(mapType === "standard" ? "satellite" : "standard");
+    Toast.show({
+      type: "info",
+      text1: "Map Style Switched",
+      text2: mapType === "standard" ? "Satellite Terrain View" : "Street Navigation View",
+    });
+  };
+
+  const handleCall = (number: string) => {
+    Linking.openURL(`tel:${number}`).catch(() => {});
+  };
+
+  const currentZoneName =
+    activeZones && activeZones.length > 0
+      ? activeZones[0].name
+      : "Kodaikanal Lake Safe Haven";
 
   return (
-    <View style={styles.container}>
-      {/* Full-Screen Underlying Real Map */}
-      <View style={styles.mapContainer}>
+    <View style={styles.screen}>
+      {/* ── 1. FULL-BLEED MAP CANVAS (100% VIEWPORT) ─────────── */}
+      <View style={StyleSheet.absoluteFillObject}>
         <RealMap
           region={{
             latitude: defaultLat,
             longitude: defaultLng,
-            latitudeDelta: 0.06,
-            longitudeDelta: 0.06,
-            zoom: 14,
+            latitudeDelta: 0.035,
+            longitudeDelta: 0.035,
           }}
-          markers={mapMarkers}
           polygons={mapPolygons}
+          markers={mapMarkers}
           height="100%"
         />
       </View>
 
-      {/* TOP FLOATING EXECUTIVE HUD */}
-      <View style={styles.topHudWrapper}>
-        <View style={styles.topHudCard}>
-          <View style={styles.topHudHeaderRow}>
-            <View style={styles.hudTitleGroup}>
-              <View style={styles.shieldPulseIcon}>
-                <ShieldCheck size={20} color="#059669" />
+      {/* ── 2. MINIMALIST FLOATING TOP HUD ────────────────────── */}
+      <View style={styles.topHudContainer} pointerEvents="box-none">
+        {/* Top-Left: Zone Status Capsule */}
+        <TouchableOpacity
+          style={styles.zoneStatusPill}
+          onPress={() => setSelectedZone(null)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.liveDot} />
+          <View>
+            <Text style={styles.zonePillSub}>CURRENT SAFETY ZONE</Text>
+            <Text style={styles.zonePillTitle} numberOfLines={1}>
+              {selectedZone ? selectedZone.name : currentZoneName}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Top-Right: Floating Control Stack */}
+        <View style={styles.floatingControlsStack}>
+          <TouchableOpacity
+            style={styles.floatingBtn}
+            onPress={toggleMapLayer}
+            activeOpacity={0.7}
+          >
+            <Layers size={18} color="#0F172A" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.floatingBtn}
+            onPress={() => {
+              loadZones();
+              Toast.show({
+                type: "success",
+                text1: "Corridors Synchronized",
+                text2: "Latest geofences updated from command center.",
+              });
+            }}
+            activeOpacity={0.7}
+          >
+            <RefreshCw size={18} color="#0F172A" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.floatingBtn, styles.floatingBtnSos]}
+            onPress={() => router.push("/tourist/(tabs)/sos")}
+            activeOpacity={0.7}
+          >
+            <ShieldAlert size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* ── 3. INTERACTIVE DRAGGABLE BOTTOM SHEET ────────────── */}
+      <DraggableBottomSheet
+        initialSnap="peek"
+        headerContent={
+          <View style={styles.sheetHeaderContent}>
+            <View style={styles.sheetHeaderLeft}>
+              <View style={styles.safeIconCircle}>
+                <ShieldCheck size={18} color="#0284C7" />
               </View>
               <View>
-                <View style={styles.hudTitleRow}>
-                  <Text style={styles.hudTitle}>Live Safety Corridors</Text>
-                  <View style={styles.livePill}>
-                    <View style={styles.livePulseDot} />
-                    <Text style={styles.livePillText}>RADAR ACTIVE</Text>
-                  </View>
-                </View>
-                <Text style={styles.hudSub}>
-                  {allZones.length} Monitored Zones • GPS Accuracy: ±
-                  {(currentLocation?.accuracy || 5).toFixed(0)}m
+                <Text style={styles.sheetZoneTitle}>
+                  {selectedZone ? selectedZone.name : "Kodaikanal Safe Corridors"}
+                </Text>
+                <Text style={styles.sheetZoneSub}>
+                  Nearest Police Kiosk: 350m • Patrol Response: &lt;4 mins
                 </Text>
               </View>
             </View>
-
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel="Toggle Tracking"
-              style={[
-                styles.trackingToggleBtn,
-                trackingStatus === "active" ? styles.trackingBtnActive : styles.trackingBtnInactive,
-              ]}
-              onPress={handleToggleTracking}
-              disabled={actionInProgress}
-            >
-              {actionInProgress ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <>
-                  <Radio size={13} color="#FFFFFF" />
-                  <Text style={styles.trackingToggleText}>
-                    {trackingStatus === "active" ? "Tracking ON" : "Tracking OFF"}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
+            <ChevronRight size={18} color="#64748B" />
           </View>
-
-          {/* Filter Categories Chips */}
+        }
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.sheetScrollContent}
+        >
+          {/* Category Filter Chips */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScroll}
+            contentContainerStyle={styles.categoryScroll}
           >
-            <TouchableOpacity
-              style={[styles.filterChip, selectedCategory === "all" && styles.filterChipActive]}
-              onPress={() => setSelectedCategory("all")}
-            >
-              <Text
+            {(
+              [
+                { id: "all", label: "All Layers" },
+                { id: "safe", label: "Safe Havens" },
+                { id: "caution", label: "Caution Zones" },
+                { id: "police", label: "Police Kiosks" },
+                { id: "medical", label: "Medical Aid" },
+              ] as { id: ZoneCategory; label: string }[]
+            ).map((cat) => (
+              <TouchableOpacity
+                key={cat.id}
                 style={[
-                  styles.filterChipText,
-                  selectedCategory === "all" && styles.filterChipTextActive,
+                  styles.catChip,
+                  selectedCategory === cat.id && styles.catChipActive,
                 ]}
-              >
-                All Safe Zones ({allZones.length})
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.filterChip, selectedCategory === "safe" && styles.filterChipActive]}
-              onPress={() => setSelectedCategory("safe")}
-            >
-              <ShieldCheck
-                size={13}
-                color={selectedCategory === "safe" ? "#FFFFFF" : "#059669"}
-              />
-              <Text
-                style={[
-                  styles.filterChipText,
-                  selectedCategory === "safe" && styles.filterChipTextActive,
-                ]}
-              >
-                Safe Havens
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.filterChip, selectedCategory === "police" && styles.filterChipActive]}
-              onPress={() => setSelectedCategory("police")}
-            >
-              <Building2
-                size={13}
-                color={selectedCategory === "police" ? "#FFFFFF" : "#0284C7"}
-              />
-              <Text
-                style={[
-                  styles.filterChipText,
-                  selectedCategory === "police" && styles.filterChipTextActive,
-                ]}
-              >
-                Police Kiosks
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.filterChip, selectedCategory === "medical" && styles.filterChipActive]}
-              onPress={() => setSelectedCategory("medical")}
-            >
-              <HeartPulse
-                size={13}
-                color={selectedCategory === "medical" ? "#FFFFFF" : "#DC2626"}
-              />
-              <Text
-                style={[
-                  styles.filterChipText,
-                  selectedCategory === "medical" && styles.filterChipTextActive,
-                ]}
-              >
-                Medical Aid
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.filterChip,
-                selectedCategory === "caution" && styles.filterChipActive,
-              ]}
-              onPress={() => setSelectedCategory("caution")}
-            >
-              <AlertTriangle
-                size={13}
-                color={selectedCategory === "caution" ? "#FFFFFF" : "#D97706"}
-              />
-              <Text
-                style={[
-                  styles.filterChipText,
-                  selectedCategory === "caution" && styles.filterChipTextActive,
-                ]}
-              >
-                Caution Zones
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
-      </View>
-
-      {/* RIGHT FLOATING ACTION STACK */}
-      <View style={styles.floatingActionStack}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Refresh Zones"
-          style={styles.floatingActionBtn}
-          onPress={loadZones}
-        >
-          {loadingZones ? (
-            <ActivityIndicator size="small" color="#0284C7" />
-          ) : (
-            <RefreshCw size={18} color="#0284C7" />
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Toggle Geofence Boundaries"
-          style={[styles.floatingActionBtn, showPolygons && styles.fabActive]}
-          onPress={() => setShowPolygons(!showPolygons)}
-        >
-          <Layers size={18} color={showPolygons ? "#0284C7" : "#64748B"} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Trigger SOS"
-          style={styles.fabEmergency}
-          onPress={() => router.push("/tourist/(tabs)/sos")}
-        >
-          <ShieldAlert size={20} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-
-      {/* BOTTOM FLOATING SAFETY INTELLIGENCE DRAWER */}
-      <View style={styles.bottomDrawerWrapper}>
-        <View style={styles.bottomDrawerCard}>
-          <TouchableOpacity
-            style={styles.drawerHandleBar}
-            onPress={() => setDrawerExpanded(!drawerExpanded)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.drawerPillIndicator} />
-          </TouchableOpacity>
-
-          {/* Drawer Header */}
-          <View style={styles.drawerHeaderRow}>
-            <View style={styles.drawerStatusLeft}>
-              <View
-                style={[
-                  styles.drawerRiskBadge,
-                  activeZoneCount > 0 ? styles.riskBadgeGreen : styles.riskBadgeBlue,
-                ]}
+                onPress={() => setSelectedCategory(cat.id)}
+                activeOpacity={0.7}
               >
                 <Text
                   style={[
-                    styles.drawerRiskText,
-                    activeZoneCount > 0 ? styles.riskTextGreen : styles.riskTextBlue,
+                    styles.catChipText,
+                    selectedCategory === cat.id && styles.catChipTextActive,
                   ]}
                 >
-                  {activeZoneCount > 0 ? "INSIDE SAFE CORRIDOR" : "SURVEILLANCE ACTIVE"}
+                  {cat.label}
                 </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Selected Zone Highlight (If active) */}
+          {selectedZone && (
+            <View style={styles.selectedZoneBox}>
+              <View style={styles.selectedZoneHeader}>
+                <AlertTriangle
+                  size={18}
+                  color={
+                    selectedZone.risk_level === "high"
+                      ? "#DC2626"
+                      : selectedZone.risk_level === "medium"
+                      ? "#D97706"
+                      : "#0284C7"
+                  }
+                />
+                <Text style={styles.selectedZoneName}>{selectedZone.name}</Text>
               </View>
-              <Text style={styles.drawerMainHeading} numberOfLines={1}>
-                {selectedZone ? selectedZone.name : currentSafeZoneName}
+              <Text style={styles.selectedZoneDesc}>
+                {selectedZone.description}
               </Text>
-              <Text style={styles.drawerSubHeading}>
-                {selectedZone
-                  ? selectedZone.description || "Active geo-fenced safety monitoring area."
-                  : "Continuous automated boundary analysis & authority link active."}
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.collapseToggleBtn}
-              onPress={() => setDrawerExpanded(!drawerExpanded)}
-            >
-              {drawerExpanded ? (
-                <ChevronDown size={18} color="#64748B" />
-              ) : (
-                <ChevronUp size={18} color="#64748B" />
-              )}
-            </TouchableOpacity>
-          </View>
-
-          {/* Expanded Drawer Action Panel */}
-          {drawerExpanded && (
-            <View style={styles.drawerExpandedContent}>
-              <View style={styles.quickActionPillsRow}>
+              <View style={styles.selectedZoneActions}>
                 <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel="Call Tourist Police"
-                  style={styles.quickActionBtn}
-                  onPress={() => Toast.show({ type: "info", text1: "Emergency Dial", text2: "Calling Tourist Police (112)..." })}
+                  style={styles.zoneActionBtn}
+                  onPress={() => setSelectedZone(null)}
+                  activeOpacity={0.7}
                 >
-                  <Phone size={14} color="#0284C7" />
-                  <Text style={styles.quickActionBtnText}>Police (112)</Text>
+                  <Text style={styles.zoneActionBtnText}>Clear Highlight</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel="Medical Assistance"
-                  style={styles.quickActionBtn}
-                  onPress={() => Toast.show({ type: "info", text1: "Ambulance Dial", text2: "Calling Medical Dispatch (108)..." })}
-                >
-                  <HeartPulse size={14} color="#DC2626" />
-                  <Text style={styles.quickActionBtnText}>Medical (108)</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  accessibilityRole="button"
-                  accessibilityLabel="View Safe Zones List"
-                  style={styles.quickActionBtn}
-                  onPress={() => router.push("/tourist/(tabs)/safety")}
-                >
-                  <ShieldCheck size={14} color="#059669" />
-                  <Text style={styles.quickActionBtnText}>Safety Advisory</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Nearest Monitored Checkpoints List */}
-              <View style={styles.nearestPointsBox}>
-                <View style={styles.nearestPointItem}>
-                  <View style={styles.pointIconCircle}>
-                    <MapPin size={14} color="#0284C7" />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.pointTitle}>Police Tourism Aid Post #4</Text>
-                    <Text style={styles.pointDistance}>0.4 km away • 24/7 Manned Desk</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.pointActionBtn}
-                    onPress={() =>
-                      Toast.show({
-                        type: "success",
-                        text1: "Route Guided",
-                        text2: "Walking guidance initiated to Police Post #4",
-                      })
-                    }
-                  >
-                    <Navigation size={12} color="#0284C7" />
-                    <Text style={styles.pointActionText}>Guide</Text>
-                  </TouchableOpacity>
-                </View>
               </View>
             </View>
           )}
-        </View>
-      </View>
+
+          {/* Nearby Safety Waypoints & Emergency Posts List */}
+          <Text style={styles.listSectionTitle}>NEARBY SAFETY ASSETS</Text>
+
+          <View style={styles.poiCard}>
+            <View style={styles.poiLeft}>
+              <View style={[styles.poiIcon, { backgroundColor: "#F0F9FF" }]}>
+                <Building2 size={16} color="#0284C7" />
+              </View>
+              <View>
+                <Text style={styles.poiName}>Tourist Police Kiosk #4</Text>
+                <Text style={styles.poiSub}>Lake Boat Club Patrol • 350m away</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.poiCallBtn}
+              onPress={() => handleCall("112")}
+              activeOpacity={0.7}
+            >
+              <Phone size={14} color="#0284C7" />
+              <Text style={styles.poiCallBtnText}>112</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.poiCard}>
+            <View style={styles.poiLeft}>
+              <View style={[styles.poiIcon, { backgroundColor: "#F0F9FF" }]}>
+                <HeartPulse size={16} color="#0284C7" />
+              </View>
+              <View>
+                <Text style={styles.poiName}>Van Allen Hospital Station</Text>
+                <Text style={styles.poiSub}>24/7 Trauma Emergency • 800m away</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.poiCallBtn}
+              onPress={() => handleCall("108")}
+              activeOpacity={0.7}
+            >
+              <Phone size={14} color="#0284C7" />
+              <Text style={styles.poiCallBtnText}>108</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.poiCard}>
+            <View style={styles.poiLeft}>
+              <View style={[styles.poiIcon, { backgroundColor: "#F0F9FF" }]}>
+                <Navigation size={16} color="#0284C7" />
+              </View>
+              <View>
+                <Text style={styles.poiName}>Coaker's Walk Safe Ridge</Text>
+                <Text style={styles.poiSub}>Monitored Safe Corridor • 1.2km</Text>
+              </View>
+            </View>
+            <View style={styles.safeTag}>
+              <Text style={styles.safeTagText}>GEOFENCED</Text>
+            </View>
+          </View>
+        </ScrollView>
+      </DraggableBottomSheet>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+    position: "relative",
   },
-  mapContainer: {
-    ...StyleSheet.absoluteFillObject,
-    width: "100%",
-    height: "100%",
-  },
-
-  // TOP FLOATING HUD
-  topHudWrapper: {
+  topHudContainer: {
     position: "absolute",
-    top: Platform.OS === "ios" ? 54 : 20,
+    top: 16,
     left: 16,
     right: 16,
-    zIndex: 10,
-    alignItems: "center",
-  },
-  topHudCard: {
-    width: "100%",
-    maxWidth: 960,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-    gap: 12,
-  },
-  topHudHeaderRow: {
     flexDirection: "row",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 10,
+    zIndex: 100,
   },
-  hudTitleGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    flex: 1,
-    minWidth: 240,
-  },
-  shieldPulseIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    backgroundColor: "#ECFDF5",
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hudTitleRow: {
+  zoneStatusPill: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-  },
-  hudTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0F172A",
-    letterSpacing: -0.3,
-  },
-  livePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: "#ECFDF5",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.94)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    maxWidth: 240,
     borderWidth: 1,
-    borderColor: "#A7F3D0",
+    borderColor: "rgba(226, 232, 240, 0.9)",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  livePulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#059669",
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#0284C7",
   },
-  livePillText: {
+  zonePillSub: {
     fontSize: 9,
     fontWeight: "800",
-    color: "#065F46",
+    color: "#0284C7",
     letterSpacing: 0.4,
   },
-  hudSub: {
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 2,
-  },
-  trackingToggleBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    gap: 6,
-  },
-  trackingBtnActive: {
-    backgroundColor: "#059669",
-  },
-  trackingBtnInactive: {
-    backgroundColor: "#0284C7",
-  },
-  trackingToggleText: {
-    color: "#FFFFFF",
+  zonePillTitle: {
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
+    color: "#0F172A",
   },
-
-  // FILTER CHIPS
-  filterScroll: {
-    flexDirection: "row",
+  floatingControlsStack: {
     gap: 8,
-    paddingVertical: 2,
   },
-  filterChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#F8FAFC",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-  },
-  filterChipActive: {
-    backgroundColor: "#0284C7",
-    borderColor: "#0284C7",
-  },
-  filterChipText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#475569",
-  },
-  filterChipTextActive: {
-    color: "#FFFFFF",
-  },
-
-  // FLOATING ACTION STACK
-  floatingActionStack: {
-    position: "absolute",
-    right: 18,
-    top: Platform.OS === "ios" ? 170 : 130,
-    zIndex: 10,
-    gap: 10,
-  },
-  floatingActionBtn: {
+  floatingBtn: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    backgroundColor: "rgba(255, 255, 255, 0.94)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
   },
-  fabActive: {
-    backgroundColor: "#F0F9FF",
-    borderColor: "#BAE6FD",
-  },
-  fabEmergency: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+  floatingBtnSos: {
     backgroundColor: "#DC2626",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#DC2626",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 5,
+    borderColor: "#B91C1C",
   },
-
-  // BOTTOM FLOATING DRAWER
-  bottomDrawerWrapper: {
-    position: "absolute",
-    bottom: Platform.OS === "ios" ? 30 : 16,
-    left: 16,
-    right: 16,
-    zIndex: 10,
-    alignItems: "center",
-  },
-  bottomDrawerCard: {
-    width: "100%",
-    maxWidth: 960,
-    backgroundColor: "rgba(255, 255, 255, 0.96)",
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 6,
-    gap: 12,
-  },
-  drawerHandleBar: {
-    width: "100%",
-    alignItems: "center",
-    paddingVertical: 2,
-  },
-  drawerPillIndicator: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#CBD5E1",
-  },
-  drawerHeaderRow: {
+  sheetHeaderContent: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 12,
+    paddingVertical: 4,
   },
-  drawerStatusLeft: {
-    flex: 1,
-  },
-  drawerRiskBadge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    marginBottom: 4,
-  },
-  riskBadgeGreen: {
-    backgroundColor: "#ECFDF5",
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-  },
-  riskBadgeBlue: {
-    backgroundColor: "#EFF6FF",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-  },
-  drawerRiskText: {
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  riskTextGreen: {
-    color: "#065F46",
-  },
-  riskTextBlue: {
-    color: "#1D4ED8",
-  },
-  drawerMainHeading: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0F172A",
-    letterSpacing: -0.3,
-  },
-  drawerSubHeading: {
-    fontSize: 12,
-    color: "#64748B",
-    marginTop: 2,
-  },
-  collapseToggleBtn: {
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: "#F1F5F9",
-  },
-
-  // EXPANDED DRAWER CONTENT
-  drawerExpandedContent: {
-    gap: 12,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
-  },
-  quickActionPillsRow: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap",
-  },
-  quickActionBtn: {
-    flex: 1,
-    minWidth: 110,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#F8FAFC",
-    paddingVertical: 9,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  quickActionBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#334155",
-  },
-  nearestPointsBox: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: 12,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  nearestPointItem: {
+  sheetHeaderLeft: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    flex: 1,
   },
-  pointIconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: "#F0F9FF",
-    borderWidth: 1,
-    borderColor: "#BAE6FD",
+  safeIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "rgba(2, 132, 199, 0.1)",
     alignItems: "center",
     justifyContent: "center",
   },
-  pointTitle: {
+  sheetZoneTitle: {
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#0F172A",
   },
-  pointDistance: {
-    fontSize: 11,
+  sheetZoneSub: {
+    fontSize: 10,
     color: "#64748B",
     marginTop: 1,
   },
-  pointActionBtn: {
+  sheetScrollContent: {
+    paddingBottom: 110,
+    gap: 12,
+  },
+  categoryScroll: {
+    gap: 8,
+    paddingVertical: 6,
+  },
+  catChip: {
+    backgroundColor: "rgba(240, 249, 255, 0.85)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  catChipActive: {
+    backgroundColor: "#0284C7",
+    borderColor: "#0284C7",
+  },
+  catChipText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  catChipTextActive: {
+    color: "#FFFFFF",
+  },
+  selectedZoneBox: {
+    backgroundColor: "rgba(254, 242, 242, 0.95)",
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.25)",
+  },
+  selectedZoneHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 4,
+  },
+  selectedZoneName: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#991B1B",
+  },
+  selectedZoneDesc: {
+    fontSize: 11,
+    color: "#DC2626",
+    lineHeight: 16,
+  },
+  selectedZoneActions: {
+    marginTop: 8,
+  },
+  zoneActionBtn: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(239, 68, 68, 0.12)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.25)",
+  },
+  zoneActionBtnText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#DC2626",
+  },
+  listSectionTitle: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#64748B",
+    letterSpacing: 0.5,
+    marginTop: 4,
+  },
+  poiCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(255, 255, 255, 0.94)",
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#0284C7",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+  },
+  poiLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+  },
+  poiIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  poiName: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  poiSub: {
+    fontSize: 10,
+    color: "#64748B",
+  },
+  poiCallBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "#EFF6FF",
+    backgroundColor: "rgba(240, 249, 255, 0.9)",
     paddingHorizontal: 10,
     paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(2, 132, 199, 0.2)",
+  },
+  poiCallBtnText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#0284C7",
+  },
+  safeTag: {
+    backgroundColor: "rgba(2, 132, 199, 0.1)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#BFDBFE",
+    borderColor: "rgba(2, 132, 199, 0.25)",
   },
-  pointActionText: {
-    fontSize: 11,
-    fontWeight: "700",
+  safeTagText: {
+    fontSize: 9,
+    fontWeight: "800",
     color: "#0284C7",
+    letterSpacing: 0.3,
   },
 });
