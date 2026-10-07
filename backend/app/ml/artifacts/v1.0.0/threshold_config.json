@@ -1,20 +1,20 @@
 {
   "method": "percentile_95",
-  "primary_threshold": 39.367689,
-  "warning_threshold": 29.131735,
-  "critical_threshold": 61.702088,
-  "val_score_mean": 13.0871,
-  "val_score_std": 13.866511,
-  "val_score_median": 11.283165,
-  "val_score_iqr": 19.657783,
-  "val_score_p95": 39.367689,
-  "val_score_p99": 61.702088,
-  "calibrated_at_epoch": 25,
+  "primary_threshold": 35.864537,
+  "warning_threshold": 28.654964,
+  "critical_threshold": 60.728656,
+  "val_score_mean": 11.384468,
+  "val_score_std": 12.929274,
+  "val_score_median": 8.785509,
+  "val_score_iqr": 16.089939,
+  "val_score_p95": 35.864537,
+  "val_score_p99": 60.728656,
+  "calibrated_at_epoch": 24,
   "tuning_metadata": {
     "k_sigma": 3.0,
     "n_val_samples": 1200,
-    "q25": 0.244787,
-    "q75": 19.90257,
-    "p98": 56.470481
+    "q25": 0.067036,
+    "q75": 16.156975,
+    "p98": 50.798737
   }
 }

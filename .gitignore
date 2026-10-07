@@ -53,3 +53,12 @@ Thumbs.db
 # Test Snapshot & Backup Artifacts
 backups/
 *.json.gz
+
+# Large ML Datasets, Archives & GPU Virtual Environments
+.venv-gpu/
+backend/.venv-gpu/
+*.zip
+*.tar.gz
+backend/app/ml/datasets/sisfall/
+backend/app/ml/datasets/uci_har/*.zip
+

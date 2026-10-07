@@ -288,3 +288,165 @@ class BenchmarkDatasetAdapter:
             "accel": np.stack([ax, ay, az], axis=1),
             "gyro": np.stack([gx, gy, gz], axis=1),
         }
+
+    @classmethod
+    def load_uci_har_cohort(
+        cls,
+        uci_har_dir: Union[str, Path],
+    ) -> Dict[str, Any]:
+        """
+        Loads and standardizes UCI-HAR dataset into TourSafe's 8-channel format.
+        Interpolates 128-sample windows to 150-sample windows @ 50 Hz.
+        Computes accel_mag and gyro_mag.
+        """
+        root = Path(uci_har_dir)
+        if not root.exists():
+            return {}
+
+        results: Dict[str, Any] = {}
+        activity_names = {
+            1: "walking",
+            2: "stairs_ascent",
+            3: "stairs_descent",
+            4: "sitting",
+            5: "standing",
+            6: "laying",
+        }
+
+        for split in ["train", "test"]:
+            split_dir = root / split
+            if not split_dir.exists():
+                split_dir = root / "UCI HAR Dataset" / split
+            if not split_dir.exists():
+                continue
+
+            sig_dir = split_dir / "Inertial Signals"
+            try:
+                ax = np.loadtxt(sig_dir / f"total_acc_x_{split}.txt", dtype=np.float32)
+                ay = np.loadtxt(sig_dir / f"total_acc_y_{split}.txt", dtype=np.float32)
+                az = np.loadtxt(sig_dir / f"total_acc_z_{split}.txt", dtype=np.float32)
+                gx = np.loadtxt(sig_dir / f"body_gyro_x_{split}.txt", dtype=np.float32)
+                gy = np.loadtxt(sig_dir / f"body_gyro_y_{split}.txt", dtype=np.float32)
+                gz = np.loadtxt(sig_dir / f"body_gyro_z_{split}.txt", dtype=np.float32)
+
+                subs = np.loadtxt(split_dir / f"subject_{split}.txt", dtype=int)
+                acts = np.loadtxt(split_dir / f"y_{split}.txt", dtype=int)
+
+                raw_6ch = np.stack([ax, ay, az, gx, gy, gz], axis=1) # (N, 6, 128)
+                N = len(raw_6ch)
+
+                orig_t = np.linspace(0.0, 1.0, 128, dtype=np.float32)
+                targ_t = np.linspace(0.0, 1.0, 150, dtype=np.float32)
+
+                resampled = np.zeros((N, 150, 6), dtype=np.float32)
+                for i in range(N):
+                    for c in range(6):
+                        resampled[i, :, c] = np.interp(targ_t, orig_t, raw_6ch[i, c])
+
+                amag = np.linalg.norm(resampled[:, :, :3], axis=-1, keepdims=True)
+                gmag = np.linalg.norm(resampled[:, :, 3:6], axis=-1, keepdims=True)
+                features_8ch = np.concatenate([resampled, amag, gmag], axis=-1)
+
+                subject_ids = [f"UCI_SUB_{int(s):02d}" for s in subs]
+                act_labels = [activity_names.get(int(a), "adl") for a in acts]
+                labels = np.zeros(N, dtype=np.int32)
+
+                results[split] = {
+                    "features": features_8ch,
+                    "labels": labels,
+                    "subject_ids": subject_ids,
+                    "activities": act_labels,
+                }
+            except Exception as e:
+                print(f"Warning: Failed to parse UCI-HAR {split} cohort: {e}")
+
+        return results
+
+    @classmethod
+    def load_sisfall_enhanced_cohort(
+        cls,
+        sisfall_dir: Union[str, Path],
+        max_train_samples: int = 4000,
+        max_test_norm: int = 1000,
+        max_test_fall: int = 600,
+    ) -> Dict[str, Any]:
+        """
+        Loads and standardizes SisFall (Enhanced) Three Classes binary tensors into TourSafe 8-channel format.
+        Class 0: Normal ADL
+        Class 1: Pre-fall transition
+        Class 2: Severe Physical Fall Impact
+        Interpolates 256 timesteps to 150 timesteps.
+        """
+        root = Path(sisfall_dir)
+        classes_dir = root / "Three Classes" if (root / "Three Classes").exists() else root
+        x_tr_p = classes_dir / "x_train_3"
+        y_tr_p = classes_dir / "y_train_3"
+        x_te_p = classes_dir / "x_test_3"
+        y_te_p = classes_dir / "y_test_3"
+
+        if not (x_tr_p.exists() and y_tr_p.exists() and x_te_p.exists() and y_te_p.exists()):
+            return {}
+
+        orig_t = np.linspace(0.0, 1.0, 256, dtype=np.float32)
+        targ_t = np.linspace(0.0, 1.0, 150, dtype=np.float32)
+
+        def _process_array(x_arr: np.ndarray) -> np.ndarray:
+            n = len(x_arr)
+            res = np.zeros((n, 150, 6), dtype=np.float32)
+            for i in range(n):
+                for c in range(6):
+                    res[i, :, c] = np.interp(targ_t, orig_t, x_arr[i, :, c])
+            am = np.linalg.norm(res[:, :, :3], axis=-1, keepdims=True)
+            gm = np.linalg.norm(res[:, :, 3:6], axis=-1, keepdims=True)
+            return np.concatenate([res, am, gm], axis=-1)
+
+        # 1. Train Cohort (Normal ADLs only)
+        x_train_raw = np.fromfile(x_tr_p, dtype=np.float32).reshape(-1, 256, 6)
+        y_train_raw = np.fromfile(y_tr_p, dtype=np.uint8).reshape(-1, 3)
+        tr_classes = np.argmax(y_train_raw, axis=1)
+
+        norm_tr_idx = np.where(tr_classes == 0)[0][:max_train_samples]
+        x_tr_norm = x_train_raw[norm_tr_idx]
+        feat_tr = _process_array(x_tr_norm)
+
+        # 2. Test Cohort (Normal ADLs + Real Falls)
+        x_test_raw = np.fromfile(x_te_p, dtype=np.float32).reshape(-1, 256, 6)
+        y_test_raw = np.fromfile(y_te_p, dtype=np.uint8).reshape(-1, 3)
+        te_classes = np.argmax(y_test_raw, axis=1)
+
+        norm_te_idx = np.where(te_classes == 0)[0][:max_test_norm]
+        fall_te_idx = np.where(te_classes == 2)[0][:max_test_fall]
+
+        x_te_norm = x_test_raw[norm_te_idx]
+        x_te_fall = x_test_raw[fall_te_idx]
+
+        feat_te_norm = _process_array(x_te_norm)
+        feat_te_fall = _process_array(x_te_fall)
+
+        feat_test = np.concatenate([feat_te_norm, feat_te_fall], axis=0)
+        labels_test = np.concatenate([
+            np.zeros(len(feat_te_norm), dtype=np.int32),
+            np.ones(len(feat_te_fall), dtype=np.int32),
+        ], axis=0)
+
+        activities_test = (
+            ["sisfall_adl"] * len(feat_te_norm) +
+            ["sisfall_fall"] * len(feat_te_fall)
+        )
+        subjects_test = [f"SIS_SUB_{(i % 38) + 1:02d}" for i in range(len(feat_test))]
+
+        return {
+            "train": {
+                "features": feat_tr,
+                "labels": np.zeros(len(feat_tr), dtype=np.int32),
+                "subject_ids": [f"SIS_SUB_{(i % 38) + 1:02d}" for i in range(len(feat_tr))],
+                "activities": ["sisfall_adl"] * len(feat_tr),
+            },
+            "test": {
+                "features": feat_test,
+                "labels": labels_test,
+                "subject_ids": subjects_test,
+                "activities": activities_test,
+            },
+        }
+

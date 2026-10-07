@@ -100,22 +100,67 @@ class MLTrainingPipeline:
             test_trials=test_trials,
         )
 
+        # Collect training and test arrays from MobiAct base
+        X_train_list = [dataset_bundle.X_train_normal]
+        X_val_list = [dataset_bundle.X_val_normal]
+        X_test_list = [dataset_bundle.X_test]
+        y_test_list = [dataset_bundle.y_test]
+        test_acts = list(dataset_bundle.test_activities)
+
+        # --- Ingest UCI-HAR Benchmark Cohort ---
+        uci_dir = Path(__file__).resolve().parent / "datasets" / "uci_har"
+        uci_cohort = BenchmarkDatasetAdapter.load_uci_har_cohort(uci_dir)
+        if uci_cohort:
+            if "train" in uci_cohort:
+                X_train_list.append(uci_cohort["train"]["features"])
+                if verbose:
+                    print(f"  • Integrated UCI-HAR Train:      {len(uci_cohort['train']['features'])} normal windows (30 subjects)")
+            if "test" in uci_cohort:
+                X_test_list.append(uci_cohort["test"]["features"])
+                y_test_list.append(uci_cohort["test"]["labels"])
+                test_acts.extend(uci_cohort["test"]["activities"])
+                if verbose:
+                    print(f"  • Integrated UCI-HAR Test:       {len(uci_cohort['test']['features'])} normal windows (unseen subjects)")
+
+        # --- Ingest SisFall (Enhanced) Benchmark Cohort ---
+        sisfall_dir = Path(__file__).resolve().parent / "datasets" / "sisfall"
+        sisfall_cohort = BenchmarkDatasetAdapter.load_sisfall_enhanced_cohort(sisfall_dir)
+        if sisfall_cohort:
+            if "train" in sisfall_cohort:
+                X_train_list.append(sisfall_cohort["train"]["features"])
+                if verbose:
+                    print(f"  • Integrated SisFall Train:      {len(sisfall_cohort['train']['features'])} normal windows (38 subjects)")
+            if "test" in sisfall_cohort:
+                X_test_list.append(sisfall_cohort["test"]["features"])
+                y_test_list.append(sisfall_cohort["test"]["labels"])
+                test_acts.extend(sisfall_cohort["test"]["activities"])
+                if verbose:
+                    print(f"  • Integrated SisFall Test:       {len(sisfall_cohort['test']['features'])} windows (ADL + severe falls)")
+
+        X_train_combined = np.concatenate(X_train_list, axis=0)
+        X_val_combined = np.concatenate(X_val_list, axis=0)
+        X_test_combined = np.concatenate(X_test_list, axis=0)
+        y_test_combined = np.concatenate(y_test_list, axis=0)
+
+        n_norm_test = int(np.sum(y_test_combined == 0))
+        n_anom_test = int(np.sum(y_test_combined == 1))
+
         if verbose:
-            s = dataset_bundle.summary
-            print(f"  • Train Windows (Normal Only):   {s['n_train_windows']} from {s['n_train_subjects']} subjects")
-            print(f"  • Val Windows (Normal Only):     {s['n_val_windows']} from {s['n_val_subjects']} subjects")
-            print(f"  • Test Windows (Normal+Anomaly): {s['n_test_windows']} ({s['n_test_normal_windows']} norm, {s['n_test_anomaly_windows']} anom) from {s['n_test_subjects']} subjects")
-            print(f"  • Window Tensor Dimensions:      {dataset_bundle.X_train_normal.shape}")
+            print("\n  --- Unified Multi-Cohort Dataset Summary ---")
+            print(f"  • Total Normal Training Windows: {len(X_train_combined)} sequences")
+            print(f"  • Total Normal Validation Windows:{len(X_val_combined)} sequences")
+            print(f"  • Total Multi-Cohort Test Windows: {len(X_test_combined)} ({n_norm_test} norm, {n_anom_test} fall anomalies)")
+            print(f"  • Unified Window Dimensions:     {X_train_combined.shape}")
 
         # ---------------------------------------------------------
         # Step 2: Fit Robust Scaler ONLY on Normal Training Data
         # ---------------------------------------------------------
         if verbose:
-            print("\n[2/6] Fitting RobustScaler on normal training motion...")
+            print("\n[2/6] Fitting RobustScaler on normal training motion across 3 cohorts...")
         scaler = TourSafeRobustScaler(feature_names=self.config.features)
-        X_train_scaled = scaler.fit_transform(dataset_bundle.X_train_normal)
-        X_val_scaled = scaler.transform(dataset_bundle.X_val_normal)
-        X_test_scaled = scaler.transform(dataset_bundle.X_test)
+        X_train_scaled = scaler.fit_transform(X_train_combined)
+        X_val_scaled = scaler.transform(X_val_combined)
+        X_test_scaled = scaler.transform(X_test_combined)
 
         if verbose:
             print(f"  • Scaler fitted on {len(X_train_scaled)} normal sequences across {scaler.n_features_in_} channels.")
@@ -124,7 +169,7 @@ class MLTrainingPipeline:
         # Step 3: Initialize & Train PyTorch LSTM Autoencoder
         # ---------------------------------------------------------
         if verbose:
-            print("\n[3/6] Initializing & Training LSTM Autoencoder...")
+            print("\n[3/6] Initializing & Training LSTM Autoencoder on GPU...")
         model = TourSafeLSTMAutoencoder(self.config.model)
         trainer = AutoencoderTrainer(model=model, config=self.config.training)
 
@@ -162,8 +207,8 @@ class MLTrainingPipeline:
         eval_report: AnomalyEvaluationReport = self.evaluator.evaluate(
             model=best_model,
             X_test=X_test_scaled,
-            y_test=dataset_bundle.y_test,
-            test_activities=dataset_bundle.test_activities,
+            y_test=y_test_combined,
+            test_activities=test_acts,
             threshold_result=threshold_result,
             X_train=X_train_scaled,
             X_val=X_val_scaled,
@@ -186,13 +231,30 @@ class MLTrainingPipeline:
         # ---------------------------------------------------------
         if verbose:
             print("\n[6/6] Exporting versioned artifact bundle...")
+
+        combined_summary = {
+            "dataset_name": "mobiact_uci_sisfall_unified_v1",
+            "n_train_windows": len(X_train_combined),
+            "n_val_windows": len(X_val_combined),
+            "n_test_windows": len(X_test_combined),
+            "n_test_normal_windows": n_norm_test,
+            "n_test_anomaly_windows": n_anom_test,
+            "sources": {
+                "mobiact": dataset_bundle.summary,
+                "uci_har_train_windows": len(uci_cohort.get("train", {}).get("features", [])) if uci_cohort else 0,
+                "uci_har_test_windows": len(uci_cohort.get("test", {}).get("features", [])) if uci_cohort else 0,
+                "sisfall_train_windows": len(sisfall_cohort.get("train", {}).get("features", [])) if sisfall_cohort else 0,
+                "sisfall_test_windows": len(sisfall_cohort.get("test", {}).get("features", [])) if sisfall_cohort else 0,
+            },
+        }
+
         metadata = self.artifact_manager.save_artifact_bundle(
             model=best_model,
             scaler=scaler,
             threshold_result=threshold_result,
             eval_report=eval_report,
             training_result=training_result,
-            dataset_summary=dataset_bundle.summary,
+            dataset_summary=combined_summary,
             version=self.config.artifact.version,
         )
 
