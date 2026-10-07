@@ -96,7 +96,7 @@ class ModelArtifactLoader:
                 model_name=self.raw_metadata.get("model_name", "TourSafeLSTMAutoencoder"),
                 model_type="lstm_autoencoder",
                 framework="pytorch_onnx",
-                framework_version=torch.__version__,
+                framework_version=torch.__version__ if torch is not None else "onnxruntime",
                 input_timesteps=self.raw_metadata.get("architecture", {}).get("sequence_length", 150),
                 input_channels=self.raw_metadata.get("architecture", {}).get("input_dim", 8),
                 channel_order=self.raw_metadata.get("features", list(FEATURE_NAMES)),

@@ -18,6 +18,7 @@ except Exception:
     torch = None
 
 from .config import PipelineConfig, default_pipeline_config
+from .dataset.benchmark_loaders import BenchmarkDatasetAdapter
 from .dataset.dataset_builder import DatasetBuilder, DatasetBundle
 from .dataset.synthetic_generator import SyntheticIMUGenerator
 from .evaluation.evaluator import AnomalyEvaluationReport, ModelEvaluator
@@ -66,16 +67,32 @@ class MLTrainingPipeline:
         # Step 1: Ingest & Partition Multi-Subject Cohort
         # ---------------------------------------------------------
         if verbose:
-            print("\n[1/6] Generating & partitioning multi-subject IMU cohorts...")
-        generator = SyntheticIMUGenerator(
-            target_hz=self.config.window.nominal_frequency_hz,
-            random_seed=self.config.training.random_seed,
-        )
-        train_trials, val_trials, test_trials = generator.generate_cohort(
-            n_train_subjects=n_train_subjects,
-            n_val_subjects=n_val_subjects,
-            n_test_subjects=n_test_subjects,
-        )
+            print("\n[1/6] Ingesting & partitioning multi-subject IMU cohorts...")
+
+        mobiact_dir = Path(__file__).resolve().parent / "datasets" / "mobiact"
+        if mobiact_dir.exists() and any(mobiact_dir.rglob("*_acc_*.txt")):
+            if verbose:
+                print(f"  • Loading real benchmark dataset from: {mobiact_dir}")
+            all_trials = BenchmarkDatasetAdapter.load_all_mobiact_trials(mobiact_dir)
+            train_subs = {"SUB_02", "SUB_03", "SUB_04", "SUB_05", "SUB_07"}
+            val_subs = {"SUB_08", "SUB_09"}
+            test_subs = {t["subject_id"] for t in all_trials} - train_subs - val_subs
+
+            train_trials = [t for t in all_trials if t["subject_id"] in train_subs and not t["is_anomaly"]]
+            val_trials = [t for t in all_trials if t["subject_id"] in val_subs and not t["is_anomaly"]]
+            test_trials = [t for t in all_trials if t["subject_id"] in test_subs]
+        else:
+            if verbose:
+                print("  • Generating synthetic IMU cohort fallback...")
+            generator = SyntheticIMUGenerator(
+                target_hz=self.config.window.nominal_frequency_hz,
+                random_seed=self.config.training.random_seed,
+            )
+            train_trials, val_trials, test_trials = generator.generate_cohort(
+                n_train_subjects=n_train_subjects,
+                n_val_subjects=n_val_subjects,
+                n_test_subjects=n_test_subjects,
+            )
 
         dataset_bundle: DatasetBundle = self.dataset_builder.build_dataset_bundle(
             train_trials=train_trials,
@@ -127,7 +144,7 @@ class MLTrainingPipeline:
         val_errors = self.evaluator.compute_model_scores(best_model, X_val_scaled)
         threshold_result: ThresholdCalibrationResult = self.calibrator.calibrate(
             val_reconstruction_errors=val_errors,
-            method="percentile_99",
+            method="percentile_95",
             epoch=training_result.best_epoch,
         )
 
@@ -190,17 +207,20 @@ class MLTrainingPipeline:
 
 
 def main():
+    default_dev = "cuda" if (torch is not None and torch.cuda.is_available()) else "cpu"
     parser = argparse.ArgumentParser(description="TourSafe ML LSTM Autoencoder Training Pipeline")
     parser.add_argument("--epochs", type=int, default=40, help="Maximum training epochs")
-    parser.add_argument("--batch-size", type=int, default=32, help="Training batch size")
+    parser.add_argument("--batch-size", type=int, default=64, help="Training batch size")
     parser.add_argument("--version", type=str, default="v1.0.0", help="Model artifact version")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument("--device", type=str, default=default_dev, help="Compute device (cuda or cpu)")
     args = parser.parse_args()
 
     cfg = PipelineConfig()
     cfg.training.epochs = args.epochs
     cfg.training.batch_size = args.batch_size
     cfg.training.random_seed = args.seed
+    cfg.training.device = args.device
     cfg.artifact.version = args.version
 
     pipeline = MLTrainingPipeline(cfg)

@@ -96,6 +96,16 @@ class DatasetBuilder:
                     # Extract 8 features (6 raw + 2 vector magnitudes)
                     feat_8ch = self.feature_extractor.extract_from_raw_array(resampled_6ch)
 
+                    # In physical fall trials, isolate windows containing the dynamic fall event
+                    # (impact, freefall, or rotation) and filter out post-impact static floor rest.
+                    if is_anom:
+                        amag = feat_8ch[:, 6]
+                        gmag = feat_8ch[:, 7]
+                        has_fall_dynamics = (np.max(amag) >= 1.65) or (np.max(gmag) >= 1.8) or (np.min(amag) <= 0.65)
+                        if not has_fall_dynamics:
+                            anchor_t += stride_sec
+                            continue
+
                     windows.append({
                         "features": feat_8ch,  # (150, 8)
                         "subject_id": sub_id,

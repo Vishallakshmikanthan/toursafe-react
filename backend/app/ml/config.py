@@ -66,11 +66,11 @@ class ModelConfig:
 @dataclass
 class TrainingConfig:
     """Hyperparameters for model training and optimization."""
-    batch_size: int = 32
+    batch_size: int = 64
     learning_rate: float = 1e-3
     weight_decay: float = 1e-5
-    epochs: int = 60
-    early_stopping_patience: int = 8
+    epochs: int = 20
+    early_stopping_patience: int = 6
     min_delta: float = 1e-5
     lr_reduce_patience: int = 4
     lr_reduce_factor: float = 0.5

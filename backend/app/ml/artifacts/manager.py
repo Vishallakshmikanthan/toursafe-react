@@ -55,7 +55,8 @@ class ModelArtifactManager:
 
         # Test batch (2, 150, 8)
         dummy = np.random.randn(2, pytorch_model.config.sequence_length, pytorch_model.config.input_dim).astype(np.float32)
-        dummy_tensor = torch.from_numpy(dummy)
+        device = next(pytorch_model.parameters()).device
+        dummy_tensor = torch.from_numpy(dummy).to(device)
 
         with torch.no_grad():
             pt_out = pytorch_model(dummy_tensor).cpu().numpy()

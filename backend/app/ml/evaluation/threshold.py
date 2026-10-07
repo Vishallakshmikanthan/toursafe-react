@@ -122,6 +122,10 @@ class AnomalyThresholdCalibrator:
             primary_th = q75 + 1.5 * iqr
             warning_th = q75 + 1.0 * iqr
             critical_th = q75 + 3.0 * iqr
+        elif cal_method == "percentile_95":
+            primary_th = p95
+            warning_th = float(np.percentile(scores, 90.0))
+            critical_th = p99
         else:  # 'percentile_99'
             primary_th = p99
             warning_th = p95

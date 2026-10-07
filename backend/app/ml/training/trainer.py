@@ -72,6 +72,9 @@ class AutoencoderTrainer:
         verbose : bool
         """
         start_time = time.time()
+        if verbose:
+            dev_name = torch.cuda.get_device_name(self.device) if self.device.type == "cuda" else "Host CPU"
+            print(f"  • Hardware Accelerator: {self.device} ({dev_name})")
 
         # Build PyTorch DataLoaders
         t_train = torch.from_numpy(X_train_scaled.astype(np.float32))

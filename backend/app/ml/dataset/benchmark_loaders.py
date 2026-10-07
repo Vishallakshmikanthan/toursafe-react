@@ -28,10 +28,146 @@ class BenchmarkDatasetAdapter:
     # Recognized standard labels
     FALL_KEYWORDS = {"fall", "drop", "collapse", "slip", "trip", "impact", "faint", "fold"}
 
+    FALL_MAP = {
+        "FOL": "forward_fall",
+        "FKL": "front_knees_fall",
+        "BSC": "backward_chair_fall",
+        "SDL": "sideward_fall",
+    }
+
+    ADL_MAP = {
+        "WAL": "walking",
+        "JOG": "jogging",
+        "STD": "standing",
+        "STU": "stairs_ascent",
+        "STN": "stairs_descent",
+        "SCH": "sitting_chair",
+        "CSI": "car_step_in",
+        "CSO": "car_step_out",
+        "JUM": "jumping",
+    }
+
     @classmethod
     def is_activity_anomalous(cls, activity_name: str) -> bool:
         low = activity_name.lower()
-        return any(k in low for k in cls.FALL_KEYWORDS)
+        if any(k in low for k in cls.FALL_KEYWORDS):
+            return True
+        if activity_name.upper() in cls.FALL_MAP:
+            return True
+        return False
+
+    @staticmethod
+    def _parse_mobiact_txt_file(filepath: Path) -> Optional[np.ndarray]:
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            data_idx = -1
+            for i, line in enumerate(lines):
+                if line.strip() == "@DATA":
+                    data_idx = i + 1
+                    break
+            if data_idx == -1:
+                return None
+            rows = []
+            for line in lines[data_idx:]:
+                s = line.strip()
+                if s:
+                    rows.append([float(x.strip()) for x in s.split(",")])
+            if not rows:
+                return None
+            return np.array(rows, dtype=np.float64)
+        except Exception:
+            return None
+
+    @classmethod
+    def load_mobiact_pair_txt(
+        cls,
+        acc_path: Union[str, Path],
+        gyro_path: Union[str, Path],
+        subject_id: Optional[str] = None,
+        activity_code: Optional[str] = None,
+        trial_no: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Parses matched MobiAct v2 accelerometer and gyroscope TXT files.
+        Resamples both streams onto a continuous 50 Hz temporal grid.
+        """
+        acc_p = Path(acc_path)
+        gyro_p = Path(gyro_path)
+        if not acc_p.exists() or not gyro_p.exists():
+            return None
+
+        acc_arr = cls._parse_mobiact_txt_file(acc_p)
+        gyro_arr = cls._parse_mobiact_txt_file(gyro_p)
+        if acc_arr is None or gyro_arr is None or len(acc_arr) < 50 or len(gyro_arr) < 50:
+            return None
+
+        t0 = max(acc_arr[0, 0], gyro_arr[0, 0])
+        t1 = min(acc_arr[-1, 0], gyro_arr[-1, 0])
+        span_sec = (t1 - t0) / 1e9
+        if span_sec < 3.0:
+            return None
+
+        grid_ns = np.arange(t0, t1, 20_000_000.0, dtype=np.float64)
+        if len(grid_ns) < 150:
+            return None
+
+        t_sec = (grid_ns - t0) / 1e9
+        # Accelerometer: convert from m/s^2 to g
+        ax = (np.interp(grid_ns, acc_arr[:, 0], acc_arr[:, 1]) / 9.80665).astype(np.float32)
+        ay = (np.interp(grid_ns, acc_arr[:, 0], acc_arr[:, 2]) / 9.80665).astype(np.float32)
+        az = (np.interp(grid_ns, acc_arr[:, 0], acc_arr[:, 3]) / 9.80665).astype(np.float32)
+
+        # Gyroscope: rad/s
+        gx = np.interp(grid_ns, gyro_arr[:, 0], gyro_arr[:, 1]).astype(np.float32)
+        gy = np.interp(grid_ns, gyro_arr[:, 0], gyro_arr[:, 2]).astype(np.float32)
+        gz = np.interp(grid_ns, gyro_arr[:, 0], gyro_arr[:, 3]).astype(np.float32)
+
+        act_c = (activity_code or acc_p.stem.split("_")[0]).upper()
+        sub_id = subject_id or (f"SUB_{acc_p.stem.split('_')[2]}" if len(acc_p.stem.split("_")) > 2 else "SUB_01")
+        tr_id = trial_no or (acc_p.stem.split("_")[3] if len(acc_p.stem.split("_")) > 3 else "1")
+
+        is_anomaly = act_c in cls.FALL_MAP
+        act_name = cls.FALL_MAP.get(act_c, cls.ADL_MAP.get(act_c, act_c.lower()))
+
+        return {
+            "subject_id": sub_id,
+            "activity": act_name,
+            "is_anomaly": is_anomaly,
+            "trial_id": f"{act_c}_{sub_id}_{tr_id}",
+            "timestamps_sec": t_sec,
+            "accel": np.stack([ax, ay, az], axis=1),
+            "gyro": np.stack([gx, gy, gz], axis=1),
+        }
+
+    @classmethod
+    def load_all_mobiact_trials(cls, mobiact_dir: Union[str, Path]) -> List[Dict[str, Any]]:
+        """
+        Discovers and pairs all MobiAct accelerometer and gyroscope recordings.
+        """
+        import re
+        p = Path(mobiact_dir)
+        acc_files = list(p.rglob("*_acc_*.txt"))
+        trials = []
+        for acc_f in sorted(acc_files):
+            m = re.match(r"([A-Z]+)_acc_(\d+)_(\d+)", acc_f.name)
+            if not m:
+                continue
+            act_code, sub_num, trial_num = m.groups()
+            gyro_f = acc_f.parent / f"{act_code}_gyro_{sub_num}_{trial_num}.txt"
+            if not gyro_f.exists():
+                continue
+            sub_id = f"SUB_{int(sub_num):02d}"
+            t = cls.load_mobiact_pair_txt(
+                acc_path=acc_f,
+                gyro_path=gyro_f,
+                subject_id=sub_id,
+                activity_code=act_code,
+                trial_no=trial_num,
+            )
+            if t is not None:
+                trials.append(t)
+        return trials
 
     @classmethod
     def load_mobiact_csv(

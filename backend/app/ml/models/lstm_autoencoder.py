@@ -184,9 +184,14 @@ class TourSafeLSTMAutoencoder(nn.Module):
         if error_type == "mae":
             # Mean absolute error over (T, D)
             return torch.mean(torch.abs(diff), dim=(1, 2))
-        else:
-            # Mean squared error over (T, D)
+        elif error_type == "pure_mse":
             return torch.mean(torch.square(diff), dim=(1, 2))
+        else:
+            # Peak-aware temporal reconstruction error (captures transient kinematic impacts)
+            mean_mse = torch.mean(torch.square(diff), dim=(1, 2))
+            step_mse = torch.mean(torch.square(diff), dim=2)
+            peak_mse = torch.max(step_mse, dim=1).values
+            return 0.5 * mean_mse + 0.5 * peak_mse
 
     def compute_per_timestep_error(self, x: torch.Tensor) -> torch.Tensor:
         """

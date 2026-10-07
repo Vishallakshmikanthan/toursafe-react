@@ -21,12 +21,16 @@ class AnomalyScorer:
         x_reconstructed: np.ndarray,
     ) -> float:
         """
-        Computes overall Mean Squared Error (MSE) across all timesteps and channels.
-        MSE = (1 / (T * D)) * sum((X - X_hat)^2)
+        Computes peak-aware reconstruction error across timesteps and channels:
+        Combines global window MSE with localized peak transient step error.
         """
         diff = np.asarray(x_original, dtype=np.float32) - np.asarray(x_reconstructed, dtype=np.float32)
-        mse = float(np.mean(np.square(diff)))
-        return max(0.0, mse)
+        if diff.ndim == 3:
+            diff = diff[0]
+        mean_mse = float(np.mean(np.square(diff)))
+        step_mse = np.mean(np.square(diff), axis=-1)
+        peak_mse = float(np.max(step_mse))
+        return max(0.0, float(0.5 * mean_mse + 0.5 * peak_mse))
 
     @staticmethod
     def compute_channel_breakdown(
