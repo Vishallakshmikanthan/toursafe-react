@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import {
   AlertTriangle,
@@ -32,8 +33,12 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useAuthStore } from '@/store/authStore';
+import { AdminMobileTopHeader } from '@/components/admin/AdminMobileTopHeader';
 
 export default function AdminTourists() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
+
   const { user, isAuthenticated, accessToken } = useAuthStore();
   const [activeSection, setActiveSection] = useState<'roster' | 'kyc_queue' | 'verifier'>('verifier');
 
@@ -386,12 +391,26 @@ export default function AdminTourists() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Identity & Verification Command</Text>
-        <Text style={styles.subtitle}>KYC Review Queue, Real-time QR Verification & Traveler Roster</Text>
-      </View>
+    <View style={styles.container}>
+      {!isDesktop ? (
+        <AdminMobileTopHeader
+          title="Identity & Verification"
+          subtitle="KYC Review Queue, Real-time QR Verification & Traveler Roster"
+        />
+      ) : null}
+
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={[styles.content, !isDesktop && styles.mobileContent]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Top Header */}
+        {isDesktop && (
+          <View style={styles.header}>
+            <Text style={styles.title}>Identity & Verification Command</Text>
+            <Text style={styles.subtitle}>KYC Review Queue, Real-time QR Verification & Traveler Roster</Text>
+          </View>
+        )}
 
       {/* Navigation Segments */}
       <View style={styles.navBar}>
@@ -796,13 +815,16 @@ export default function AdminTourists() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
+  scrollArea: { flex: 1 },
   content: { padding: 18, paddingBottom: 50 },
+  mobileContent: { paddingTop: 12, paddingBottom: 84 },
 
   header: { marginBottom: 18 },
   title: { fontSize: 22, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },

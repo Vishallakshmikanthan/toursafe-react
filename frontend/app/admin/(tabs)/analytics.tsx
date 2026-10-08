@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Modal,
   Platform,
+  StatusBar,
 } from 'react-native';
 import {
   Activity,
@@ -1139,7 +1140,8 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 60,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 12 : 20,
+    paddingBottom: 84,
   },
   header: {
     marginBottom: 20,

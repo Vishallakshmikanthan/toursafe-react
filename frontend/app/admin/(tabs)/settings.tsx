@@ -8,6 +8,8 @@ import {
   TextInput,
   Modal,
   ActivityIndicator,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import {
   ShieldCheck,
@@ -653,7 +655,7 @@ const styles = StyleSheet.create({
   // Header
   header: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 12 : 20,
     paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
