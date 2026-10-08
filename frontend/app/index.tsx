@@ -56,7 +56,7 @@ export default function AppEntry() {
     setUser({
       id: "usr_tourist_mock",
       email: "tourist@toursafe.dev",
-      full_name: "Priya Sharma",
+      full_name: "Vishal Lakshmikanthan",
       role: "tourist",
     });
     router.replace("/tourist/(tabs)/dashboard");

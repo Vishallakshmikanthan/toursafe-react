@@ -92,7 +92,7 @@ export default function AdminTourists() {
         {
           id: "kyc-001",
           tourist_id: "t-001",
-          full_name: "Priya Sharma",
+          full_name: "Vishal Lakshmikanthan",
           document_type: "PASSPORT",
           issuing_country: "IND",
           masked_identifier: "•••• 8842",
@@ -198,8 +198,8 @@ export default function AdminTourists() {
         },
         {
           id: "t-002",
-          full_name: "Priya Sharma",
-          email: "priya.sharma@toursafe.gov.in",
+          full_name: "Vishal Lakshmikanthan",
+          email: "vishal@toursafe.dev",
           nationality: "India",
           phone_number: "+91 98765 11223",
           identity_status: "VERIFIED",

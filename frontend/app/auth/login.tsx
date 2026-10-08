@@ -29,7 +29,7 @@ type RoleTab = "tourist" | "responder" | "authority";
 
 const PRESET_ACCOUNTS = {
   tourist: [
-    { email: "priya.sharma@gmail.com", label: "Priya Sharma (Tourist)" },
+    { email: "vishal@toursafe.dev", label: "Vishal Lakshmikanthan (Tourist)" },
     { email: "tourist@toursafe.in", label: "Standard Traveler" },
   ],
   responder: [
@@ -122,7 +122,7 @@ export default function LoginPage() {
         email: email || `${tab}@toursafe.dev`,
         full_name:
           tab === "tourist"
-            ? "Priya Sharma (Verified)"
+            ? "Vishal Lakshmikanthan (Verified)"
             : tab === "responder"
             ? "Tactical Officer"
             : "Command Lead",

@@ -78,7 +78,7 @@ export default function DigitalID() {
     } finally {
       if (!identityData) {
         setIdentityData({
-          full_name: user?.full_name || "PRIYA SHARMA",
+          full_name: user?.full_name || "VISHAL LAKSHMIKANTHAN",
           nationality: "IND (Global Citizen)",
           identity_status: "VERIFIED",
           passport_number: "Z8842109",
@@ -154,7 +154,7 @@ export default function DigitalID() {
   };
 
   const activeCred = credentialData?.active_credential;
-  const holderName = identityData?.full_name || user?.full_name || "PRIYA SHARMA";
+  const holderName = identityData?.full_name || user?.full_name || "VISHAL LAKSHMIKANTHAN";
   const credNumber = activeCred?.credential_reference || "TS-IND-8842-2026";
   const qrString = activeCred?.qr_payload || "TSQR:TOURSAFE_GOV_VERIFIED";
   const nonce = activeCred?.token_nonce || "8F4A921C";

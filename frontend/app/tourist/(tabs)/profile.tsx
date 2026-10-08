@@ -190,8 +190,8 @@ export default function ProfileScreen() {
     Linking.openURL(`tel:${num}`).catch(() => {});
   };
 
-  const displayName = user?.full_name || "Priya Sharma";
-  const userEmail = user?.email || "priya.sharma@toursafe.dev";
+  const displayName = user?.full_name || "Vishal Lakshmikanthan";
+  const userEmail = user?.email || "vishal@toursafe.dev";
   const batteryPct =
     typeof batteryInfo?.level === "number" ? Math.round(batteryInfo.level) : 100;
 

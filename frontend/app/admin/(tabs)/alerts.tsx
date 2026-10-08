@@ -86,7 +86,7 @@ export default function AdminIncidentCommandCenter() {
           {
             incident_id: 'INC-2024-0891',
             tourist_id: 't-001',
-            tourist_name: 'Priya Sharma',
+            tourist_name: 'Vishal Lakshmikanthan',
             source: 'SOS_BUTTON',
             severity: 'CRITICAL',
             status: 'OPEN',

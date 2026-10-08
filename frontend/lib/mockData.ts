@@ -348,7 +348,7 @@ export const MOCK_TOURISTS = [
   {
     id: "tourist-001",
     user_id: "uid-001",
-    full_name: "Priya Sharma",
+    full_name: "Vishal Lakshmikanthan",
     date_of_birth: "1996-03-15",
     nationality: "Indian",
     id_type: "aadhaar",
@@ -899,7 +899,7 @@ export const MOCK_ALERTS = [
     zone_id: "zone-003",
     zone_name: "Coaker's Walk Ridge Trail",
     anomaly_score: 0.94,
-    description: "SOS triggered by Priya Sharma at Coaker's Walk Ridge. Tourist stationary for 3 minutes 24 seconds. Blood type: A+. Trigger: Hold button.",
+    description: "SOS triggered by Vishal Lakshmikanthan at Coaker's Walk Ridge. Tourist stationary for 3 minutes 24 seconds. Blood type: A+. Trigger: Hold button.",
     status: "new",
     assigned_to: null,
     acknowledged_at: null,
@@ -1053,7 +1053,7 @@ export const MOCK_INCIDENTS = [
     latitude: 10.2291,
     longitude: 77.4947,
     location_name: "Coaker's Walk Ridge Trail, Kodaikanal",
-    description: "SOS triggered by tourist Priya Sharma at Coaker's Walk Ridge. Tourist appears to have slipped on wet trail. Last movement detected 3+ minutes ago. SOS trigger type: hold button.",
+    description: "SOS triggered by tourist Vishal Lakshmikanthan at Coaker's Walk Ridge. Tourist appears to have slipped on wet trail. Last movement detected 3+ minutes ago. SOS trigger type: hold button.",
     status: "open",
     assigned_authority_id: null,
     efir_id: null,
@@ -1140,11 +1140,11 @@ export const MOCK_EFIRS = [
     tourist: MOCK_TOURISTS[0],
     case_number: "TSX-20260414-C9D1E5",
     fir_type: "SOS — Possible Accident",
-    complainant_name: "Priya Sharma",
+    complainant_name: "Vishal Lakshmikanthan",
     complainant_nationality: "Indian",
     incident_date: new Date(Date.now() - 3 * 60 * 1000).toISOString(),
     incident_location_text: "Coaker's Walk Ridge Trail, Kodaikanal, Tamil Nadu — 10.2291°N, 77.4947°E",
-    incident_description: "Tourist Priya Sharma (Indian national, Blood: A+) triggered SOS via TourSafe hold button at 09:39 IST on 14-Apr-2026 at Coaker's Walk Ridge Trail. Tourist stationary for 3 minutes 24 seconds prior to SOS. Anomaly score: 0.94/1.00. SDRF and police notified. Search and rescue operation initiated.",
+    incident_description: "Tourist Vishal Lakshmikanthan (Indian national, Blood: A+) triggered SOS via TourSafe hold button at 09:39 IST on 14-Apr-2026 at Coaker's Walk Ridge Trail. Tourist stationary for 3 minutes 24 seconds prior to SOS. Anomaly score: 0.94/1.00. SDRF and police notified. Search and rescue operation initiated.",
     authority_notes: null,
     status: "draft",
     created_by: "auth-001",
@@ -1458,12 +1458,12 @@ export const INDIA_TOURIST_PLACES = [
 
 export const MOCK_VERIFICATION_LOG = [
   { tourist_name: "Arun Kumar",   did_uri: "did:polygon:mumbai:0x7f4a...c82d", verified_at: "Today 08:32", result: "Approved", officer: "Kumar R." },
-  { tourist_name: "Priya Sharma", did_uri: "did:polygon:mumbai:0x1b2c...d3e4", verified_at: "Today 09:15", result: "Approved", officer: "Kumar R." },
+  { tourist_name: "Vishal Lakshmikanthan", did_uri: "did:polygon:mumbai:0x1b2c...d3e4", verified_at: "Today 09:15", result: "Approved", officer: "Kumar R." },
   { tourist_name: "Klaus Müller", did_uri: "did:polygon:mumbai:0x9f8e...7d6c", verified_at: "Today 09:28", result: "Approved", officer: "Kumar R." },
 ];
 
 export const MOCK_ACTIVITY_FEED = [
-  { type: "sos",      icon: "🆘", text: "SOS triggered — Priya Sharma",           sub: "09:39 · Coaker's Walk · Dispatching", color: "#C53030" },
+  { type: "sos",      icon: "🆘", text: "SOS triggered — Vishal Lakshmikanthan",           sub: "09:39 · Coaker's Walk · Dispatching", color: "#C53030" },
   { type: "anomaly",  icon: "⚠",  text: "Anomaly alert — Raj Patel (0.71)",       sub: "09:30 · Guna Caves approach",         color: "#B45309" },
   { type: "anomaly",  icon: "⚠",  text: "Anomaly alert — Klaus Müller (0.78)",    sub: "09:28 · Guna Caves danger zone",      color: "#B45309" },
   { type: "geofence", icon: "📍", text: "Geofence breach — Meena Das",            sub: "09:15 · Berijam Lake boundary",       color: "#1A3C6E" },

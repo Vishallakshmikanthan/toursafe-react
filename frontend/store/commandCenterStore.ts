@@ -368,7 +368,7 @@ export const useCommandCenterStore = create<CommandCenterState>((set, get) => ({
       const mockTourists: Record<string, TouristLiveSummary> = {
         "tourist-001": {
           tourist_id: "tourist-001",
-          full_name: "Priya Sharma",
+          full_name: "Vishal Lakshmikanthan",
           phone: "+91 98765 43210",
           nationality: "India",
           safety_state: "INCIDENT",
@@ -511,7 +511,7 @@ export const useCommandCenterStore = create<CommandCenterState>((set, get) => ({
         "inc-001": {
           incident_id: "INC-2024-0891",
           tourist_id: "tourist-001",
-          tourist_name: "Priya Sharma",
+          tourist_name: "Vishal Lakshmikanthan",
           source: "SOS_BUTTON",
           severity: "CRITICAL",
           status: "OPEN",
@@ -734,7 +734,7 @@ export const useCommandCenterStore = create<CommandCenterState>((set, get) => ({
           timestamp: new Date(Date.now() - 180000).toISOString(),
           source: "TOURIST_APP",
           title: "EMERGENCY SOS TRIGGERED",
-          description: "Tourist Priya Sharma triggered Panic Hold at Coaker's Walk Ridge Trail",
+          description: "Tourist Vishal Lakshmikanthan triggered Panic Hold at Coaker's Walk Ridge Trail",
           severity: "CRITICAL",
           entity_id: "inc-001",
           entity_type: "incident",
