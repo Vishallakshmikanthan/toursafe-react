@@ -109,10 +109,23 @@ function buildMapHtml({
         zoomAnimation: true
       }).setView([${region.latitude || 10.2381}, ${region.longitude || 77.4892}], ${region.zoom || 14});
       
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      var cartoKey = '${process.env.EXPO_PUBLIC_CARTO_API_KEY || "cb1_4dmw_1_e00d97a2c5d7b772bc21755c"}';
+      var tileUrl = cartoKey
+        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=' + cartoKey
+        : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+      var baseLayer = L.tileLayer(tileUrl, {
         maxZoom: 19,
-        subdomains: ['a', 'b', 'c']
+        subdomains: cartoKey ? ['a', 'b', 'c', 'd'] : ['a', 'b', 'c']
       }).addTo(map);
+
+      baseLayer.on('tileerror', function(error, tile) {
+        if (tile && !tile._hasFallback) {
+          tile._hasFallback = true;
+          var coords = error.coords;
+          tile.src = 'https://tile.openstreetmap.org/' + coords.z + '/' + coords.x + '/' + coords.y + '.png';
+        }
+      });
 
       var bounds = [];
 
