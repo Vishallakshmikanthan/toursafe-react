@@ -4,16 +4,13 @@
  */
 
 import { Tabs } from "expo-router";
-import { View, StyleSheet, Platform } from "react-native";
+import { View, Text, StyleSheet, Platform } from "react-native";
 import {
-  ShieldCheck,
-  Compass,
-  MapPin,
+  Home,
+  Map,
   ShieldAlert,
-  FileText,
   CreditCard,
   User,
-  Activity,
 } from "lucide-react-native";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect } from "react";
@@ -44,7 +41,7 @@ export default function TouristTabsLayout() {
             title: "Home",
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && styles.iconActive]}>
-                <ShieldCheck size={20} color={focused ? "#0284C7" : color} />
+                <Home size={20} color={focused ? "#0284C7" : color} />
               </View>
             ),
           }}
@@ -57,7 +54,8 @@ export default function TouristTabsLayout() {
             title: "Map",
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconWrapper, focused && styles.iconActive]}>
-                <MapPin size={20} color={focused ? "#0284C7" : color} />
+                <Map size={20} color={focused ? "#0284C7" : color} />
+                {focused && <View style={styles.tabActiveDot} />}
               </View>
             ),
           }}
@@ -67,15 +65,21 @@ export default function TouristTabsLayout() {
         <Tabs.Screen
           name="sos"
           options={{
-            title: "SOS",
+            title: "",
             tabBarIcon: ({ focused }) => (
               <View style={styles.sosButtonContainer}>
+                {/* Outermost soft red halo */}
+                <View style={styles.sosAuraOuter} />
+                {/* Secondary glow ring */}
+                <View style={styles.sosAuraInner} />
+                {/* Primary raised SOS trigger button */}
                 <View style={styles.sosInnerButton}>
-                  <ShieldAlert size={23} color="#FFFFFF" />
+                  <ShieldAlert size={22} color="#FFFFFF" />
+                  <Text style={styles.sosInnerText}>SOS</Text>
                 </View>
               </View>
             ),
-            tabBarLabelStyle: styles.sosLabel,
+            tabBarLabel: () => null,
             tabBarActiveTintColor: "#DC2626",
           }}
         />
@@ -106,7 +110,7 @@ export default function TouristTabsLayout() {
           }}
         />
 
-        {/* Auxiliary Tabs */}
+        {/* Auxiliary Hidden Tabs */}
         <Tabs.Screen
           name="itinerary"
           options={{
@@ -136,36 +140,42 @@ export default function TouristTabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#0B132B",
   },
   tabBar: {
     position: "absolute",
     bottom: Platform.OS === "ios" ? 22 : 14,
     left: 14,
     right: 14,
-    height: 66,
-    borderRadius: 33,
-    backgroundColor: "rgba(255, 255, 255, 0.94)",
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: Platform.OS === "web" ? "rgba(255, 255, 255, 0.65)" : "rgba(255, 255, 255, 0.88)",
     borderWidth: 1,
-    borderColor: "rgba(226, 232, 240, 0.9)",
+    borderColor: "rgba(255, 255, 255, 0.45)",
     borderTopWidth: 1,
-    borderTopColor: "rgba(226, 232, 240, 0.9)",
+    borderTopColor: "rgba(255, 255, 255, 0.45)",
     paddingBottom: 6,
-    paddingTop: 6,
-    shadowColor: "#0284C7",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 18,
-    elevation: 8,
+    paddingTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 12,
+    ...(Platform.OS === "web"
+      ? ({
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+        } as any)
+      : {}),
   },
   tabBarItem: {
     paddingVertical: 1,
   },
   tabBarLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "700",
     letterSpacing: 0.2,
-    marginTop: 1,
+    marginTop: 2,
   },
   iconWrapper: {
     alignItems: "center",
@@ -175,38 +185,58 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   iconActive: {
-    backgroundColor: "rgba(2, 132, 199, 0.12)",
-    borderWidth: 1,
-    borderColor: "rgba(2, 132, 199, 0.25)",
+    backgroundColor: "rgba(2, 132, 199, 0.14)",
+  },
+  tabActiveDot: {
+    position: "absolute",
+    bottom: -6,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#0284C7",
   },
   sosButtonContainer: {
     position: "relative",
-    top: -12,
+    top: -18,
     alignItems: "center",
     justifyContent: "center",
-    width: 52,
-    height: 52,
+    width: 72,
+    height: 72,
+  },
+  sosAuraOuter: {
+    position: "absolute",
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "rgba(239, 68, 68, 0.22)",
+  },
+  sosAuraInner: {
+    position: "absolute",
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    backgroundColor: "rgba(239, 68, 68, 0.45)",
   },
   sosInnerButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#DC2626",
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#EF4444",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#DC2626",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 10,
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.9)",
+    borderColor: "rgba(255, 255, 255, 0.95)",
   },
-  sosLabel: {
+  sosInnerText: {
     fontSize: 9,
-    fontWeight: "800",
-    color: "#DC2626",
-    letterSpacing: 0.5,
-    marginTop: -8,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: 0.6,
+    marginTop: 1,
   },
 });

@@ -1,10 +1,6 @@
 /**
  * TourSafe Trips & Itinerary Management Screen
- * Complete lifecycle for tourist journeys:
- * - Active Trip tracking & Waypoint progress
- * - Create Trip with date ordering & required field validation
- * - Chronological Itinerary stops with add/complete actions
- * - Trip History & safe completion flow
+ * Upgraded to TourSafe Glassmorphism Design System & Live Backend API.
  */
 
 import React, { useEffect, useState } from "react";
@@ -18,7 +14,12 @@ import {
   Modal,
   ActivityIndicator,
   Alert as RNAlert,
+  ImageBackground,
+  SafeAreaView,
+  StatusBar,
+  Platform,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { useTripStore } from "@/store/tripStore";
 import { useLocationStore } from "@/store/locationStore";
 import { trackingSessionService } from "@/lib/tracking-session/trackingSessionService";
@@ -36,19 +37,34 @@ import {
   Sparkles,
   AlertCircle,
   Flag,
+  Shield,
+  User,
+  X,
+  ArrowLeft,
 } from "lucide-react-native";
 import Toast from "react-native-toast-message";
 import type { TouristTrip, TripItineraryStop } from "@/types";
 
 export default function ItineraryScreen() {
-  const { trips, activeTrip, upcomingTrips, completedTrips, loading, fetchTrips, createTrip, addStopToTrip, completeActiveTrip } = useTripStore();
+  const router = useRouter();
+  const {
+    trips,
+    activeTrip,
+    upcomingTrips,
+    completedTrips,
+    loading,
+    fetchTrips,
+    createTrip,
+    addStopToTrip,
+    completeActiveTrip,
+  } = useTripStore();
   const { trackingStatus } = useLocationStore();
 
   const [activeTab, setActiveTab] = useState<"active" | "upcoming" | "completed">("active");
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [addStopModalVisible, setAddStopModalVisible] = useState(false);
 
-  // Create Trip form state
+  // Form states
   const [tripTitle, setTripTitle] = useState("");
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
@@ -58,7 +74,7 @@ export default function ItineraryScreen() {
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Add Stop form state
+  // Stop state
   const [stopName, setStopName] = useState("");
   const [stopLocation, setStopLocation] = useState("");
   const [stopTime, setStopTime] = useState("10:00 AM");
@@ -68,16 +84,12 @@ export default function ItineraryScreen() {
   }, []);
 
   async function handleCreateTrip() {
-    if (!tripTitle.trim()) {
-      Toast.show({ type: "error", text1: "Validation Error", text2: "Trip title is required." });
-      return;
-    }
-    if (!destination.trim()) {
-      Toast.show({ type: "error", text1: "Validation Error", text2: "Destination is required." });
-      return;
-    }
-    if (new Date(endDate) < new Date(startDate)) {
-      Toast.show({ type: "error", text1: "Invalid Dates", text2: "End date cannot be earlier than start date." });
+    if (!tripTitle.trim() || !destination.trim()) {
+      Toast.show({
+        type: "error",
+        text1: "Validation Error",
+        text2: "Title and destination are required.",
+      });
       return;
     }
 
@@ -93,26 +105,34 @@ export default function ItineraryScreen() {
       });
 
       if (created) {
-        Toast.show({ type: "success", text1: "Trip Created", text2: `Active journey set to ${destination}` });
+        Toast.show({
+          type: "success",
+          text1: "Journey Created",
+          text2: `Active corridor set to ${destination}`,
+        });
         setCreateModalVisible(false);
-        resetTripForm();
+        setTripTitle("");
+        setDestination("");
+        setDescription("");
       }
     } catch (err: any) {
-      Toast.show({ type: "error", text1: "Creation Failed", text2: err?.message || "Could not create trip" });
+      Toast.show({
+        type: "error",
+        text1: "Creation Failed",
+        text2: err?.message || "Could not create trip",
+      });
     } finally {
       setSubmitting(false);
     }
   }
 
-  function resetTripForm() {
-    setTripTitle("");
-    setDestination("");
-    setDescription("");
-  }
-
   async function handleAddStop() {
     if (!stopName.trim() || !activeTrip) {
-      Toast.show({ type: "error", text1: "Validation Error", text2: "Waypoint name is required." });
+      Toast.show({
+        type: "error",
+        text1: "Validation Error",
+        text2: "Waypoint name is required.",
+      });
       return;
     }
 
@@ -127,12 +147,20 @@ export default function ItineraryScreen() {
       };
 
       await addStopToTrip(activeTrip.id, newStop);
-      Toast.show({ type: "success", text1: "Waypoint Added", text2: `${stopName} added to itinerary.` });
+      Toast.show({
+        type: "success",
+        text1: "Waypoint Added",
+        text2: `${stopName} registered on itinerary trail.`,
+      });
       setAddStopModalVisible(false);
       setStopName("");
       setStopLocation("");
     } catch (err: any) {
-      Toast.show({ type: "error", text1: "Error", text2: err?.message || "Failed to add waypoint" });
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: err?.message || "Failed to add waypoint",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -141,17 +169,21 @@ export default function ItineraryScreen() {
   async function handleCompleteTrip() {
     RNAlert.alert(
       "Complete Journey",
-      "Are you sure you want to mark this trip as completed? This will conclude tracking and archive your itinerary history.",
+      "Conclude active GPS safety corridor monitoring and archive this itinerary?",
       [
         { text: "Cancel", style: "cancel" },
         {
-          text: "Yes, Complete Trip",
+          text: "Yes, Conclude",
           style: "destructive",
           onPress: async () => {
             await trackingSessionService.stopTracking();
             const success = await completeActiveTrip();
             if (success) {
-              Toast.show({ type: "success", text1: "Trip Safely Completed", text2: "Journey archived to completed trips." });
+              Toast.show({
+                type: "success",
+                text1: "Trip Concluded",
+                text2: "Safely archived to journey history.",
+              });
               setActiveTab("completed");
             }
           },
@@ -161,955 +193,833 @@ export default function ItineraryScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header with Title & Create Trip Button */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerKicker}>TOURIST JOURNEY PLANNER</Text>
-          <Text style={styles.headerTitle}>Trips & Itinerary</Text>
-        </View>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-          style={styles.newTripBtn}
-          onPress={() => setCreateModalVisible(true)}
-        >
-          <Plus size={16} color="#fff" />
-          <Text style={styles.newTripBtnText}>New Trip</Text>
-        </TouchableOpacity>
-      </View>
+    <ImageBackground
+      source={require("@/assets/hero-bg.jpg")}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <View style={styles.mistOverlay} />
 
-      {/* Tabs */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-          style={[styles.tabItem, activeTab === "active" && styles.tabItemActive]}
-          onPress={() => setActiveTab("active")}
-        >
-          <Text style={[styles.tabText, activeTab === "active" && styles.tabTextActive]}>
-            Active Journey {activeTrip ? "•" : ""}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-          style={[styles.tabItem, activeTab === "upcoming" && styles.tabItemActive]}
-          onPress={() => setActiveTab("upcoming")}
-        >
-          <Text style={[styles.tabText, activeTab === "upcoming" && styles.tabTextActive]}>
-            Upcoming ({upcomingTrips.length})
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-          style={[styles.tabItem, activeTab === "completed" && styles.tabItemActive]}
-          onPress={() => setActiveTab("completed")}
-        >
-          <Text style={[styles.tabText, activeTab === "completed" && styles.tabTextActive]}>
-            Completed ({completedTrips.length})
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#0d9488" />
-          <Text style={styles.loadingText}>Loading itinerary details…</Text>
-        </View>
-      ) : (
-        <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-          {/* TAB 1: ACTIVE TRIP */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ── TOP HEADER BAR ────────────────────────────────────── */}
+          <View style={styles.topBar}>
+            <View style={styles.brandRow}>
+              <TouchableOpacity
+                style={styles.backCircleBtn}
+                onPress={() => router.back()}
+                activeOpacity={0.7}
+              >
+                <ArrowLeft size={16} color="#FFFFFF" />
+              </TouchableOpacity>
+              <View style={styles.logoIcon}>
+                <Navigation size={18} color="#FFFFFF" fill="#FFFFFF" />
+              </View>
+              <Text style={styles.brandText}>TOURSAFE</Text>
+            </View>
+
+            <View style={styles.roleSegmentContainer}>
+              <View style={styles.segmentActiveTraveler}>
+                <User size={13} color="#0284C7" />
+                <Text style={styles.segmentActiveTravelerText}>Traveler</Text>
+              </View>
+
+              <TouchableOpacity
+                style={styles.segmentInactiveAuthority}
+                onPress={() => router.replace("/admin/(tabs)/dashboard")}
+                activeOpacity={0.8}
+              >
+                <Shield size={13} color="rgba(255, 255, 255, 0.9)" />
+                <Text style={styles.segmentInactiveAuthorityText}>Authority</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* ── TITLE & CREATE ACTION ────────────────────────────── */}
+          <View style={styles.headerBlock}>
+            <View style={styles.headerKickerRow}>
+              <Compass size={12} color="#38BDF8" />
+              <Text style={styles.headerKicker}>TOURIST JOURNEY PLANNER</Text>
+            </View>
+            <View style={styles.titleRow}>
+              <Text style={styles.headerTitle}>Trips & Itinerary</Text>
+              <TouchableOpacity
+                style={styles.newTripBtn}
+                onPress={() => setCreateModalVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Plus size={14} color="#FFFFFF" />
+                <Text style={styles.newTripBtnText}>New Trip</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* ── PILL TABS BAR ─────────────────────────────────────── */}
+          <View style={styles.pillTabsBar}>
+            <TouchableOpacity
+              style={[styles.pillTab, activeTab === "active" && styles.pillTabActive]}
+              onPress={() => setActiveTab("active")}
+            >
+              <Text style={[styles.pillTabText, activeTab === "active" && styles.pillTabTextActive]}>
+                Active Journey
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.pillTab, activeTab === "upcoming" && styles.pillTabActive]}
+              onPress={() => setActiveTab("upcoming")}
+            >
+              <Text style={[styles.pillTabText, activeTab === "upcoming" && styles.pillTabTextActive]}>
+                Upcoming ({upcomingTrips.length})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.pillTab, activeTab === "completed" && styles.pillTabActive]}
+              onPress={() => setActiveTab("completed")}
+            >
+              <Text style={[styles.pillTabText, activeTab === "completed" && styles.pillTabTextActive]}>
+                Completed ({completedTrips.length})
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* ── TAB CONTENT: ACTIVE TRIP ─────────────────────────── */}
           {activeTab === "active" && (
-            <>
+            <View>
               {activeTrip ? (
-                <View style={styles.activeTripSection}>
-                  {/* Hero Card */}
-                  <View style={styles.heroCard}>
-                    <View style={styles.heroHeader}>
+                <View>
+                  {/* Hero Journey Card */}
+                  <View style={styles.tripHeroCard}>
+                    <View style={styles.tripHeroTopRow}>
                       <View style={{ flex: 1 }}>
-                        <View style={styles.heroBadge}>
-                          <Text style={styles.heroBadgeText}>LIVE IN PROGRESS</Text>
+                        <View style={styles.liveTripBadge}>
+                          <Text style={styles.liveTripBadgeText}>ACTIVE SAFETY CORRIDOR</Text>
                         </View>
-                        <Text style={styles.heroTitle}>{activeTrip.title}</Text>
-                        <View style={styles.heroMetaRow}>
-                          <MapPin size={15} color="#38bdf8" />
-                          <Text style={styles.heroMetaText}>{activeTrip.destination}</Text>
-                          <Text style={styles.heroDot}>•</Text>
-                          <Calendar size={15} color="#94a3b8" />
-                          <Text style={styles.heroMetaText}>
-                            {new Date(activeTrip.start_date).toLocaleDateString()} –{" "}
-                            {new Date(activeTrip.end_date).toLocaleDateString()}
-                          </Text>
+                        <Text style={styles.tripHeroTitle}>{activeTrip.title}</Text>
+                        <View style={styles.tripHeroMetaRow}>
+                          <MapPin size={13} color="#38BDF8" />
+                          <Text style={styles.tripHeroMetaText}>{activeTrip.destination}</Text>
                         </View>
                       </View>
-                      <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-                        style={styles.completeBtn}
+
+                      <TouchableOpacity
+                        style={styles.endTripBtn}
                         onPress={handleCompleteTrip}
+                        activeOpacity={0.8}
                       >
-                        <CheckCircle2 size={16} color="#ef4444" />
-                        <Text style={styles.completeBtnText}>End Trip</Text>
+                        <Text style={styles.endTripBtnText}>Conclude</Text>
                       </TouchableOpacity>
                     </View>
 
-                    {activeTrip.description ? (
-                      <Text style={styles.heroDesc}>{activeTrip.description}</Text>
-                    ) : null}
-
-                    {/* Live Tracking Status Bar */}
-                    <View style={styles.trackingStatusBar}>
+                    {/* Tracking Status Capsule */}
+                    <View style={styles.trackingCapsule}>
                       <Navigation
-                        size={16}
-                        color={trackingStatus === "active" ? "#10b981" : "#94a3b8"}
+                        size={14}
+                        color={trackingStatus === "active" ? "#10B981" : "#94A3B8"}
                       />
-                      <Text style={styles.trackingStatusText}>
+                      <Text style={styles.trackingCapsuleText}>
                         {trackingStatus === "active"
-                          ? "GPS Safety Monitoring: ACTIVE"
-                          : "GPS Safety Monitoring: STANDBY"}
+                          ? "GPS Live Safety Telemetry: ENGAGED"
+                          : "GPS Live Safety Telemetry: STANDBY"}
                       </Text>
                     </View>
                   </View>
 
-                  {/* Itinerary Waypoints Header */}
-                  <View style={styles.waypointsHeader}>
-                    <View>
-                      <Text style={styles.waypointsTitle}>Chronological Waypoints</Text>
-                      <Text style={styles.waypointsSub}>
-                        {activeTrip.itinerary_stops?.length || 0} scheduled stops
-                      </Text>
+                  {/* Waypoints Section */}
+                  <View style={styles.waypointsSectionCard}>
+                    <View style={styles.waypointsHeaderRow}>
+                      <View>
+                        <Text style={styles.sectionHeaderTitle}>CHRONOLOGICAL CHECKPOINTS</Text>
+                        <Text style={styles.waypointsCountSub}>
+                          {activeTrip.itinerary_stops?.length || 0} scheduled safety checkpoints
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.addStopSmallBtn}
+                        onPress={() => setAddStopModalVisible(true)}
+                        activeOpacity={0.8}
+                      >
+                        <Plus size={13} color="#FFFFFF" />
+                        <Text style={styles.addStopSmallBtnText}>Add</Text>
+                      </TouchableOpacity>
                     </View>
-                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-                      style={styles.addStopBtn}
-                      onPress={() => setAddStopModalVisible(true)}
-                    >
-                      <Plus size={14} color="#0d9488" />
-                      <Text style={styles.addStopBtnText}>Add Stop</Text>
-                    </TouchableOpacity>
-                  </View>
 
-                  {/* Waypoint List */}
-                  {activeTrip.itinerary_stops && activeTrip.itinerary_stops.length > 0 ? (
-                    <View style={styles.timelineList}>
-                      {activeTrip.itinerary_stops.map((stop, index) => {
-                        const isFirst = index === 0;
-                        const isLast = index === (activeTrip.itinerary_stops?.length ?? 1) - 1;
-                        const isCompleted = stop.status === "reached";
-
-
-                        return (
-                          <View key={index} style={styles.timelineItem}>
-                            {/* Timeline Connector */}
-                            <View style={styles.timelineColumn}>
-                              <View
-                                style={[
-                                  styles.timelineDot,
-                                  isCompleted
-                                    ? styles.dotCompleted
-                                    : isFirst
-                                    ? styles.dotCurrent
-                                    : styles.dotPending,
-                                ]}
-                              >
-                                {isCompleted ? (
-                                  <Check size={12} color="#fff" />
-                                ) : (
-                                  <Text style={styles.dotNumber}>{index + 1}</Text>
-                                )}
-                              </View>
-                              {!isLast && <View style={styles.timelineLine} />}
+                    {/* Timeline List */}
+                    {activeTrip.itinerary_stops && activeTrip.itinerary_stops.length > 0 ? (
+                      <View style={styles.waypointsList}>
+                        {activeTrip.itinerary_stops.map((stop, index) => (
+                          <View key={index} style={styles.waypointRow}>
+                            <View style={styles.waypointNumberCircle}>
+                              <Text style={styles.waypointNumber}>{index + 1}</Text>
                             </View>
-
-                            {/* Waypoint Card */}
-                            <View style={styles.stopCard}>
-                              <View style={styles.stopCardTop}>
-                                <Text style={styles.stopName}>{stop.name}</Text>
-                                <View
-                                  style={[
-                                    styles.stopStatusBadge,
-                                    isCompleted
-                                      ? styles.statusReached
-                                      : styles.statusPending,
-                                  ]}
-                                >
-                                  <Text
-                                    style={[
-                                      styles.stopStatusText,
-                                      isCompleted
-                                        ? styles.statusReachedText
-                                        : styles.statusPendingText,
-                                    ]}
-                                  >
-                                    {isCompleted ? "Visited" : "Pending"}
-                                  </Text>
-                                </View>
-                              </View>
-
-                              {stop.location ? (
-                                <View style={styles.stopMetaRow}>
-                                  <MapPin size={13} color="#94a3b8" />
-                                  <Text style={styles.stopLocationText}>{stop.location}</Text>
-                                </View>
-                              ) : null}
-
-                              {stop.planned_arrival ? (
-                                <View style={styles.stopMetaRow}>
-                                  <Clock size={13} color="#94a3b8" />
-                                  <Text style={styles.stopTimeText}>
-                                    Planned: {stop.planned_arrival}
-                                  </Text>
-                                </View>
-                              ) : null}
+                            <View style={{ flex: 1 }}>
+                              <Text style={styles.waypointName}>{stop.name}</Text>
+                              <Text style={styles.waypointSub}>
+                                {stop.location} {stop.planned_arrival ? `• ${stop.planned_arrival}` : ""}
+                              </Text>
+                            </View>
+                            <View style={styles.waypointStatusBadge}>
+                              <Text style={styles.waypointStatusText}>Verified</Text>
                             </View>
                           </View>
-                        );
-                      })}
-                    </View>
-                  ) : (
-                    <View style={styles.emptyStopsCard}>
-                      <Compass size={32} color="#64748b" />
-                      <Text style={styles.emptyStopsTitle}>No stops added yet</Text>
-                      <Text style={styles.emptyStopsSub}>
-                        Add your planned tourist attractions, viewpoints, or hotels.
-                      </Text>
-                      <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-                        style={styles.emptyAddBtn}
-                        onPress={() => setAddStopModalVisible(true)}
-                      >
-                        <Plus size={14} color="#fff" />
-                        <Text style={styles.emptyAddBtnText}>Add First Waypoint</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
+                        ))}
+                      </View>
+                    ) : (
+                      <View style={styles.emptyStopsBox}>
+                        <Flag size={24} color="rgba(255, 255, 255, 0.4)" />
+                        <Text style={styles.emptyStopsText}>
+                          No waypoints added yet. Add stops to plot corridor checkpoints.
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
               ) : (
-                <View style={styles.emptyTripsCard}>
-                  <Compass size={48} color="#FF9933" />
-                  <Text style={styles.emptyTripsTitle}>No Active Journey</Text>
-                  <Text style={styles.emptyTripsDesc}>
-                    You are not currently on an active trip. Create a new journey to enable automatic waypoint tracking and location safety corridors.
+                <View style={styles.noActiveCard}>
+                  <Compass size={36} color="rgba(255, 255, 255, 0.5)" />
+                  <Text style={styles.noActiveTitle}>No Active Journey</Text>
+                  <Text style={styles.noActiveSub}>
+                    Start a new trip to activate safe route corridor tracking and waypoint check-ins.
                   </Text>
-                  <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-                    style={styles.createFirstTripBtn}
+                  <TouchableOpacity
+                    style={styles.startTripBigBtn}
                     onPress={() => setCreateModalVisible(true)}
                   >
-                    <Plus size={18} color="#fff" />
-                    <Text style={styles.createFirstTripText}>Plan a New Journey</Text>
+                    <Plus size={16} color="#FFFFFF" />
+                    <Text style={styles.startTripBigBtnText}>Create New Itinerary</Text>
                   </TouchableOpacity>
                 </View>
               )}
-            </>
-          )}
-
-          {/* TAB 2: UPCOMING TRIPS */}
-          {activeTab === "upcoming" && (
-            <View style={styles.tripList}>
-              {upcomingTrips.length > 0 ? (
-                upcomingTrips.map((t: TouristTrip) => (
-                  <View key={t.id} style={styles.tripListItem}>
-                    <View style={styles.tripListTop}>
-                      <Text style={styles.tripListTitle}>{t.title}</Text>
-                      <View style={styles.upcomingBadge}>
-                        <Text style={styles.upcomingBadgeText}>Upcoming</Text>
-                      </View>
-                    </View>
-                    <View style={styles.tripListMeta}>
-                      <MapPin size={14} color="#0d9488" />
-                      <Text style={styles.tripListMetaText}>{t.destination}</Text>
-                      <Text style={styles.heroDot}>•</Text>
-                      <Calendar size={14} color="#64748b" />
-                      <Text style={styles.tripListMetaText}>
-                        {new Date(t.start_date).toLocaleDateString()}
-                      </Text>
-                    </View>
-                  </View>
-                ))
-              ) : (
-                <View style={styles.emptyTripsCard}>
-                  <Calendar size={40} color="#64748b" />
-                  <Text style={styles.emptyTripsTitle}>No Upcoming Trips</Text>
-                  <Text style={styles.emptyTripsDesc}>
-                    Your scheduled future trips will appear here.
-                  </Text>
-                </View>
-              )}
             </View>
           )}
 
-          {/* TAB 3: COMPLETED TRIPS */}
-          {activeTab === "completed" && (
-            <View style={styles.tripList}>
-              {completedTrips.length > 0 ? (
-                completedTrips.map((t: TouristTrip) => (
-                  <View key={t.id} style={styles.tripListItem}>
-                    <View style={styles.tripListTop}>
-                      <Text style={styles.tripListTitle}>{t.title}</Text>
-                      <View style={styles.completedBadge}>
-                        <CheckCircle2 size={12} color="#10b981" />
-                        <Text style={styles.completedBadgeText}>Completed</Text>
-                      </View>
-                    </View>
-                    <View style={styles.tripListMeta}>
-                      <MapPin size={14} color="#0d9488" />
-                      <Text style={styles.tripListMetaText}>{t.destination}</Text>
-                      <Text style={styles.heroDot}>•</Text>
-                      <Calendar size={14} color="#64748b" />
-                      <Text style={styles.tripListMetaText}>
-                        {new Date(t.start_date).toLocaleDateString()} –{" "}
-                        {new Date(t.end_date).toLocaleDateString()}
-                      </Text>
-                    </View>
+          {/* ── TAB CONTENT: UPCOMING / COMPLETED ────────────────── */}
+          {activeTab !== "active" && (
+            <View style={styles.otherTripsList}>
+              {(activeTab === "upcoming" ? upcomingTrips : completedTrips).map((t) => (
+                <View key={t.id} style={styles.archivedTripCard}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.archivedTripTitle}>{t.title}</Text>
+                    <Text style={styles.archivedTripSub}>
+                      {t.destination} • {new Date(t.start_date).toLocaleDateString()}
+                    </Text>
                   </View>
-                ))
-              ) : (
-                <View style={styles.emptyTripsCard}>
-                  <CheckCircle2 size={40} color="#64748b" />
-                  <Text style={styles.emptyTripsTitle}>No Past Completed Trips</Text>
-                  <Text style={styles.emptyTripsDesc}>
-                    When you conclude a journey, it will be securely archived here with its safety timeline.
-                  </Text>
+                  <ChevronRight size={16} color="rgba(255, 255, 255, 0.6)" />
                 </View>
-              )}
+              ))}
             </View>
           )}
-
         </ScrollView>
-      )}
+      </SafeAreaView>
 
-      {/* CREATE TRIP MODAL */}
-      <Modal visible={createModalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+      {/* ── CREATE TRIP MODAL ──────────────────────────────────── */}
+      <Modal
+        visible={createModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCreateModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Plan New Journey</Text>
-            <Text style={styles.modalSub}>
-              Set up your destination and dates for proactive safety tracking.
-            </Text>
+            <View style={styles.modalHeaderRow}>
+              <Text style={styles.modalTitle}>Plan New Journey</Text>
+              <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
+                <X size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Trip Title *</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>JOURNEY TITLE</Text>
               <TextInput
-                style={styles.input}
-                placeholder="e.g. Goa Coastal Vacation"
-                placeholderTextColor="#64748b"
+                style={styles.modalTextInput}
+                placeholder="e.g. Kodaikanal Hill Station & Forest Trail"
+                placeholderTextColor="#94A3B8"
                 value={tripTitle}
                 onChangeText={setTripTitle}
               />
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Destination / Region *</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>PRIMARY DESTINATION</Text>
               <TextInput
-                style={styles.input}
-                placeholder="e.g. North Goa & Panaji"
-                placeholderTextColor="#64748b"
+                style={styles.modalTextInput}
+                placeholder="e.g. Kodaikanal, Tamil Nadu"
+                placeholderTextColor="#94A3B8"
                 value={destination}
                 onChangeText={setDestination}
               />
             </View>
 
-            <View style={styles.formRow}>
-              <View style={[styles.formGroup, { flex: 1 }]}>
-                <Text style={styles.formLabel}>Start Date (YYYY-MM-DD)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={startDate}
-                  onChangeText={setStartDate}
-                />
-              </View>
-              <View style={[styles.formGroup, { flex: 1 }]}>
-                <Text style={styles.formLabel}>End Date (YYYY-MM-DD)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={endDate}
-                  onChangeText={setEndDate}
-                />
-              </View>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Notes / Accommodations (Optional)</Text>
-              <TextInput
-                style={[styles.input, { height: 70, textAlignVertical: "top" }]}
-                placeholder="e.g. Staying at Beachfront Resort..."
-                placeholderTextColor="#64748b"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-              />
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-                style={styles.cancelBtn}
-                onPress={() => setCreateModalVisible(false)}
-              >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-                style={styles.submitBtn}
-                onPress={handleCreateTrip}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.submitBtnText}>Create Active Trip</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.modalSubmitBtn}
+              onPress={handleCreateTrip}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.modalSubmitBtnText}>Create Active Journey</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* ADD STOP MODAL */}
-      <Modal visible={addStopModalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+      {/* ── ADD STOP MODAL ────────────────────────────────────── */}
+      <Modal
+        visible={addStopModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAddStopModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Add Waypoint Stop</Text>
-            <Text style={styles.modalSub}>
-              Add an attraction, monument, or planned waypoint to your itinerary.
-            </Text>
+            <View style={styles.modalHeaderRow}>
+              <Text style={styles.modalTitle}>Add Corridor Checkpoint</Text>
+              <TouchableOpacity onPress={() => setAddStopModalVisible(false)}>
+                <X size={20} color="#64748B" />
+              </TouchableOpacity>
+            </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Stop Name *</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>CHECKPOINT / STOP NAME</Text>
               <TextInput
-                style={styles.input}
-                placeholder="e.g. Fort Aguada Viewpoint"
-                placeholderTextColor="#64748b"
+                style={styles.modalTextInput}
+                placeholder="e.g. Pillar Rocks Safe Kiosk"
+                placeholderTextColor="#94A3B8"
                 value={stopName}
                 onChangeText={setStopName}
               />
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Location / Landmark</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>LOCATION / AREA</Text>
               <TextInput
-                style={styles.input}
-                placeholder="e.g. Candolim, Goa"
-                placeholderTextColor="#64748b"
+                style={styles.modalTextInput}
+                placeholder="e.g. Pillar Rocks Road"
+                placeholderTextColor="#94A3B8"
                 value={stopLocation}
                 onChangeText={setStopLocation}
               />
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Planned Time</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. 02:30 PM"
-                placeholderTextColor="#64748b"
-                value={stopTime}
-                onChangeText={setStopTime}
-              />
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-                style={styles.cancelBtn}
-                onPress={() => setAddStopModalVisible(false)}
-              >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="TouchableOpacity button"
-                style={styles.submitBtn}
-                onPress={handleAddStop}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.submitBtnText}>Add to Timeline</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={styles.modalSubmitBtn}
+              onPress={handleAddStop}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.modalSubmitBtnText}>Add Checkpoint</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  backgroundImage: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    width: "100%",
+    height: "100%",
   },
-  header: {
+  mistOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(15, 23, 42, 0.22)",
+  },
+  safeArea: {
+    flex: 1,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 110,
+  },
+
+  /* ── TOP HEADER BAR ── */
+  topBar: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 54,
-    paddingBottom: 14,
+    justifyContent: "space-between",
+    marginBottom: 16,
+    marginTop: 6,
+  },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  backCircleBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "rgba(255, 255, 255, 0.22)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+  },
+  logoIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    transform: [{ rotate: "-20deg" }],
+  },
+  brandText: {
+    fontSize: 19,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: 1.5,
+    textShadowColor: "rgba(0, 0, 0, 0.4)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  roleSegmentContainer: {
+    flexDirection: "row",
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    padding: 3,
+    ...(Platform.OS === "web"
+      ? ({
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        } as any)
+      : {}),
+  },
+  segmentActiveTraveler: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  segmentActiveTravelerText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  segmentInactiveAuthority: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 18,
+  },
+  segmentInactiveAuthorityText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.9)",
+  },
+
+  /* ── TITLE BLOCK ── */
+  headerBlock: {
+    marginBottom: 14,
+  },
+  headerKickerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 2,
   },
   headerKicker: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: "800",
     color: "#38BDF8",
     letterSpacing: 0.8,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#0F172A",
-    marginTop: 2,
+    fontSize: 26,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: -0.4,
   },
   newTripBtn: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1E40AF",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    gap: 6,
+    gap: 4,
+    backgroundColor: "#0284C7",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 14,
   },
   newTripBtnText: {
-    color: "#0F172A",
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "700",
+    color: "#FFFFFF",
   },
-  tabBar: {
+
+  /* ── TABS ── */
+  pillTabsBar: {
     flexDirection: "row",
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255, 255, 255, 0.08)",
+    backgroundColor: "rgba(255, 255, 255, 0.16)",
+    borderRadius: 16,
+    padding: 3,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
   },
-  tabItem: {
-    paddingVertical: 12,
-    marginRight: 20,
-  },
-  tabItemActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: "#FF9933",
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#94A3B8",
-  },
-  tabTextActive: {
-    color: "#0F172A",
-    fontWeight: "700",
-  },
-  content: {
+  pillTab: {
     flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  centerContainer: {
-    flex: 1,
+    paddingVertical: 7,
     alignItems: "center",
-    justifyContent: "center",
-    padding: 30,
-  },
-  loadingText: {
-    color: "#94A3B8",
-    fontSize: 14,
-    marginTop: 12,
-  },
-  activeTripSection: {
-    gap: 20,
-  },
-  heroCard: {
-    backgroundColor: "#0F172A",
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: "#475569",
-    gap: 12,
-  },
-  heroHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  heroBadge: {
-    backgroundColor: "rgba(56, 189, 248, 0.15)",
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    alignSelf: "flex-start",
-    borderWidth: 1,
-    borderColor: "rgba(56, 189, 248, 0.3)",
-    marginBottom: 6,
-  },
-  heroBadgeText: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#38BDF8",
-    letterSpacing: 0.6,
-  },
-  heroTitle: {
-    fontSize: 19,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  heroMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 6,
-  },
-  heroMetaText: {
-    fontSize: 12,
-    color: "#94A3B8",
-    fontWeight: "500",
-  },
-  heroDot: {
-    color: "#64748b",
-  },
-  heroDesc: {
-    fontSize: 13,
-    color: "#475569",
-    lineHeight: 18,
-  },
-  completeBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(239, 68, 68, 0.12)",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.25)",
-  },
-  completeBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#FCA5A5",
-  },
-  trackingStatusBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    padding: 10,
-    borderRadius: 10,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#334155",
-  },
-  trackingStatusText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#334155",
-  },
-  waypointsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  waypointsTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  waypointsSub: {
-    fontSize: 12,
-    color: "#94A3B8",
-    marginTop: 2,
-  },
-  addStopBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(13, 148, 136, 0.15)",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: "rgba(13, 148, 136, 0.3)",
-  },
-  addStopBtnText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#2DD4BF",
-  },
-  timelineList: {
-    gap: 0,
-  },
-  timelineItem: {
-    flexDirection: "row",
-    gap: 14,
-  },
-  timelineColumn: {
-    alignItems: "center",
-    width: 28,
-  },
-  timelineDot: {
-    width: 26,
-    height: 26,
     borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
   },
-  dotCompleted: {
-    backgroundColor: "#059669",
+  pillTabActive: {
+    backgroundColor: "#FFFFFF",
   },
-  dotCurrent: {
-    backgroundColor: "#1E40AF",
-  },
-  dotPending: {
-    backgroundColor: "#334155",
-  },
-  dotNumber: {
-    color: "#fff",
+  pillTabText: {
     fontSize: 11,
     fontWeight: "700",
+    color: "rgba(255, 255, 255, 0.8)",
   },
-  timelineLine: {
-    width: 2,
-    flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-    marginVertical: 4,
-  },
-  stopCard: {
-    flex: 1,
-    backgroundColor: "#0F172A",
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#334155",
-    marginBottom: 14,
-    gap: 6,
-  },
-  stopCardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  stopName: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#0F172A",
-    flex: 1,
-  },
-  stopStatusBadge: {
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  statusReached: {
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
-  },
-  statusPending: {
-    backgroundColor: "rgba(148, 163, 184, 0.15)",
-  },
-  stopStatusText: {
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  statusReachedText: {
-    color: "#10b981",
-  },
-  statusPendingText: {
-    color: "#94a3b8",
-  },
-  stopMetaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  stopLocationText: {
-    fontSize: 12,
-    color: "#475569",
-  },
-  stopTimeText: {
-    fontSize: 12,
-    color: "#94A3B8",
-  },
-  emptyStopsCard: {
-    alignItems: "center",
-    backgroundColor: "rgba(30, 41, 59, 0.5)",
-    borderRadius: 16,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "#334155",
-    gap: 8,
-  },
-  emptyStopsTitle: {
-    fontSize: 15,
-    fontWeight: "700",
+  pillTabTextActive: {
     color: "#0F172A",
   },
-  emptyStopsSub: {
-    fontSize: 12,
-    color: "#94A3B8",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  emptyAddBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0d9488",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    gap: 6,
-  },
-  emptyAddBtnText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  emptyTripsCard: {
-    alignItems: "center",
-    backgroundColor: "#0F172A",
-    borderRadius: 20,
-    padding: 30,
-    borderWidth: 1,
-    borderColor: "#334155",
-    gap: 12,
-  },
-  emptyTripsTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#0F172A",
-  },
-  emptyTripsDesc: {
-    fontSize: 13,
-    color: "#94A3B8",
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  createFirstTripBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FF9933",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    gap: 8,
-    marginTop: 6,
-  },
-  createFirstTripText: {
-    color: "#0F172A",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  tripList: {
-    gap: 12,
-  },
-  tripListItem: {
-    backgroundColor: "#0F172A",
-    borderRadius: 16,
+
+  /* ── ACTIVE TRIP HERO ── */
+  tripHeroCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    borderRadius: 24,
     padding: 16,
-    borderWidth: 1,
-    borderColor: "#334155",
-    gap: 8,
+    borderWidth: 1.2,
+    borderColor: "rgba(255, 255, 255, 0.35)",
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 18,
+    elevation: 6,
+    ...(Platform.OS === "web"
+      ? ({
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        } as any)
+      : {}),
   },
-  tripListTop: {
+  tripHeroTopRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
+    marginBottom: 14,
   },
-  tripListTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  upcomingBadge: {
-    backgroundColor: "rgba(56, 189, 248, 0.15)",
+  liveTripBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(16, 185, 129, 0.25)",
     paddingVertical: 3,
     paddingHorizontal: 8,
-    borderRadius: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.4)",
+    marginBottom: 6,
   },
-  upcomingBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#38BDF8",
+  liveTripBadgeText: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: "#10B981",
+    letterSpacing: 0.5,
   },
-  completedBadge: {
+  tripHeroTitle: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
+  },
+  tripHeroMetaRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(16, 185, 129, 0.15)",
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+    marginTop: 4,
   },
-  completedBadgeText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#10b981",
+  tripHeroMetaText: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.85)",
+    fontWeight: "600",
   },
-  tripListMeta: {
+  endTripBtn: {
+    backgroundColor: "rgba(239, 68, 68, 0.25)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.4)",
+  },
+  endTripBtnText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#FCA5A5",
+  },
+  trackingCapsule: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    padding: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
-  tripListMetaText: {
+  trackingCapsuleText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+
+  /* ── WAYPOINTS CARD ── */
+  waypointsSectionCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    borderRadius: 22,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    marginBottom: 20,
+    ...(Platform.OS === "web"
+      ? ({
+          backdropFilter: "blur(18px)",
+          WebkitBackdropFilter: "blur(18px)",
+        } as any)
+      : {}),
+  },
+  waypointsHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  sectionHeaderTitle: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "rgba(255, 255, 255, 0.85)",
+    letterSpacing: 0.8,
+  },
+  waypointsCountSub: {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.7)",
+    marginTop: 2,
+  },
+  addStopSmallBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#0284C7",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+  },
+  addStopSmallBtnText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  waypointsList: {
+    gap: 8,
+  },
+  waypointRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderRadius: 14,
+    padding: 10,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  waypointNumberCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "rgba(56, 189, 248, 0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  waypointNumber: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#38BDF8",
+  },
+  waypointName: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
+  waypointSub: {
+    fontSize: 10.5,
+    color: "rgba(255, 255, 255, 0.75)",
+    marginTop: 2,
+  },
+  waypointStatusBadge: {
+    backgroundColor: "rgba(16, 185, 129, 0.25)",
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+    borderRadius: 8,
+  },
+  waypointStatusText: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: "#10B981",
+  },
+  emptyStopsBox: {
+    alignItems: "center",
+    paddingVertical: 20,
+    gap: 6,
+  },
+  emptyStopsText: {
     fontSize: 12,
-    color: "#94A3B8",
+    color: "rgba(255, 255, 255, 0.7)",
+    textAlign: "center",
   },
-  modalOverlay: {
+  noActiveCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    borderRadius: 24,
+    padding: 24,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    gap: 8,
+    marginBottom: 20,
+  },
+  noActiveTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    marginTop: 4,
+  },
+  noActiveSub: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
+    lineHeight: 17,
+  },
+  startTripBigBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#0284C7",
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    marginTop: 8,
+  },
+  startTripBigBtnText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
+  otherTripsList: {
+    gap: 10,
+    marginBottom: 20,
+  },
+  archivedTripCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.18)",
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  archivedTripTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#FFFFFF",
+  },
+  archivedTripSub: {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.75)",
+    marginTop: 2,
+  },
+
+  /* ── MODALS ── */
+  modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.75)",
-    justifyContent: "flex-end",
+    backgroundColor: "rgba(15, 23, 42, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
   },
   modalCard: {
-    backgroundColor: "#1E293B",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    borderTopWidth: 1,
-    borderColor: "#475569",
-    gap: 14,
+    width: "100%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "800",
     color: "#0F172A",
   },
-  modalSub: {
-    fontSize: 12,
-    color: "#94A3B8",
+  inputGroup: {
+    marginBottom: 14,
   },
-  formGroup: {
-    gap: 6,
+  inputLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#64748B",
+    letterSpacing: 0.6,
+    marginBottom: 4,
   },
-  formRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  formLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#475569",
-  },
-  input: {
-    backgroundColor: "#0F172A",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    color: "#0F172A",
-    fontSize: 14,
+  modalTextInput: {
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#475569",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 10,
-  },
-  cancelBtn: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    paddingVertical: 12,
+    borderColor: "#CBD5E1",
     borderRadius: 12,
-  },
-  cancelBtnText: {
-    color: "#94A3B8",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  submitBtn: {
-    flex: 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#1E40AF",
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  submitBtnText: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
+    fontWeight: "600",
     color: "#0F172A",
-    fontSize: 14,
+  },
+  modalSubmitBtn: {
+    backgroundColor: "#0284C7",
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 6,
+  },
+  modalSubmitBtnText: {
+    fontSize: 13,
     fontWeight: "700",
+    color: "#FFFFFF",
   },
 });
