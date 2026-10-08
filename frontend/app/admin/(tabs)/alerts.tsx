@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import {
   AlertCircle,
@@ -32,8 +33,12 @@ import {
 import Toast from 'react-native-toast-message';
 import { incidentApi, responderApi } from '@/lib/api';
 import type { IncidentMetrics, IncidentRecord, Responder, TimelineEvent } from '@/types';
+import { AdminMobileTopHeader } from '@/components/admin/AdminMobileTopHeader';
 
 export default function AdminIncidentCommandCenter() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
+
   const [incidents, setIncidents] = useState<IncidentRecord[]>([]);
   const [responders, setResponders] = useState<Responder[]>([]);
   const [metrics, setMetrics] = useState<IncidentMetrics | null>(null);
@@ -402,21 +407,37 @@ export default function AdminIncidentCommandCenter() {
   });
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} />}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Incident Command Center</Text>
-          <Text style={styles.subtitle}>Real-time emergency response, responder coordination & audit timeline</Text>
-        </View>
-        <TouchableOpacity onPress={loadData} style={styles.refreshBtn}>
-          <RefreshCw size={16} color="#0284C7" />
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      {!isDesktop ? (
+        <AdminMobileTopHeader
+          title="Incident Command Center"
+          subtitle="Real-time emergency response & responder coordination"
+          rightAction={
+            <TouchableOpacity onPress={loadData} style={styles.refreshBtnMobile} activeOpacity={0.8}>
+              <RefreshCw size={15} color="#0284C7" />
+            </TouchableOpacity>
+          }
+        />
+      ) : null}
+
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={[styles.content, !isDesktop && styles.mobileContent]}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} />}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Desktop Header */}
+        {isDesktop && (
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>Incident Command Center</Text>
+              <Text style={styles.subtitle}>Real-time emergency response, responder coordination & audit timeline</Text>
+            </View>
+            <TouchableOpacity onPress={loadData} style={styles.refreshBtn}>
+              <RefreshCw size={16} color="#0284C7" />
+            </TouchableOpacity>
+          </View>
+        )}
 
       {/* Metrics Strip */}
       {metrics && (
@@ -867,7 +888,8 @@ export default function AdminIncidentCommandCenter() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -895,7 +917,9 @@ function getStatusTagStyle(status: string) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
+  scrollArea: { flex: 1 },
   content: { padding: 16, gap: 16 },
+  mobileContent: { paddingTop: 12, paddingBottom: 84 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -908,6 +932,15 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#e2e8f0',
     borderRadius: 10,
+  },
+  refreshBtnMobile: {
+    padding: 8,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   metricsGrid: {
     flexDirection: 'row',

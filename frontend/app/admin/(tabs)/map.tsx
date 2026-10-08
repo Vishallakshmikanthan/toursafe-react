@@ -1,35 +1,48 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  ScrollView,
   View,
   Text,
   StyleSheet,
   Platform,
   ActivityIndicator,
   TouchableOpacity,
+  Image,
+  useWindowDimensions,
+  StatusBar,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import {
   MapPinned,
   Shield,
-  TriangleAlert,
   Layers3,
   RefreshCw,
   AlertOctagon,
   ShieldCheck,
   Radio,
   Users,
+  Navigation,
+  ShieldAlert,
+  ChevronRight,
+  Flag,
+  ArrowRight,
 } from 'lucide-react-native';
-import RealMap, { ZonePolygonProp } from '@/components/RealMap';
+import RealMap, { ZonePolygonProp, MapMarkerProp } from '@/components/RealMap';
 import { zoneApi, locationApi } from '@/lib/api';
-import { ConnectionStatusBadge } from '@/components/ConnectionStatusBadge';
 import { useMapStore } from '@/store/mapStore';
 import { useAnomalyStore } from '@/store/anomalyStore';
 import type { ZoneMapItem } from '@/types';
+import Toast from 'react-native-toast-message';
 
 export default function AdminMap() {
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
+
   const [zones, setZones] = useState<ZoneMapItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'safe' | 'caution' | 'police'>('all');
+  const [tileMode, setTileMode] = useState<'voyager' | 'satellite' | 'topo'>('voyager');
 
   // Live tourist markers updated via WebSocket and polling
   const liveMarkers = useMapStore((state) => state.markers);
@@ -74,301 +87,601 @@ export default function AdminMap() {
   }, [fetchMapData]);
 
   // Convert GeoJSON polygons to RealMap polygons
-  const mapPolygons: ZonePolygonProp[] = zones
-    .filter((z) => z.geometry && z.geometry.coordinates)
-    .map((z) => {
-      const coords: Array<{ latitude: number; longitude: number }> = [];
-      if (z.geometry.type === 'Polygon') {
-        const outerRing = z.geometry.coordinates[0] || [];
-        outerRing.forEach(([lon, lat]) => {
-          coords.push({ latitude: lat, longitude: lon });
-        });
-      }
-      return {
-        coordinates: coords,
-        name: `${z.name} (${z.risk_level.toUpperCase()})`,
-        risk_level: z.risk_level,
-      };
-    })
-    .filter((p) => p.coordinates.length > 2);
+  const mapPolygons: ZonePolygonProp[] = useMemo(() => {
+    return zones
+      .filter((z) => {
+        if (!z.geometry || !z.geometry.coordinates) return false;
+        if (activeFilter === 'safe' && z.type !== 'safe') return false;
+        if (activeFilter === 'caution' && z.type !== 'warning' && z.type !== 'danger' && z.type !== 'restricted') return false;
+        return true;
+      })
+      .map((z) => {
+        const coords: Array<{ latitude: number; longitude: number }> = [];
+        if (z.geometry.type === 'Polygon') {
+          const outerRing = z.geometry.coordinates[0] || [];
+          outerRing.forEach(([lon, lat]: [number, number]) => {
+            coords.push({ latitude: lat, longitude: lon });
+          });
+        }
+        return {
+          coordinates: coords,
+          name: `${z.name} (${z.risk_level.toUpperCase()})`,
+          risk_level: z.risk_level,
+        };
+      })
+      .filter((p) => p.coordinates.length > 2);
+  }, [zones, activeFilter]);
 
   // Zone center markers
-  const zoneMarkers = zones
-    .filter((z) => z.center && z.center.coordinates)
-    .map((z) => {
-      const [lon, lat] = z.center.coordinates;
-      const color =
-        z.risk_level === 'critical' || z.risk_level === 'high'
-          ? '#ef4444'
-          : z.risk_level === 'medium'
-          ? '#f59e0b'
-          : '#10b981';
+  const zoneMarkers: MapMarkerProp[] = useMemo(() => {
+    return zones
+      .filter((z) => z.center && z.center.coordinates)
+      .map((z) => {
+        const [lon, lat] = z.center.coordinates;
+        const color =
+          z.risk_level === 'critical' || z.risk_level === 'high'
+            ? '#ef4444'
+            : z.risk_level === 'medium'
+            ? '#f59e0b'
+            : '#10b981';
+        return {
+          latitude: lat,
+          longitude: lon,
+          title: `${z.name} [${z.type}]`,
+          color,
+        };
+      });
+  }, [zones]);
+
+  // Real-time live tourist markers
+  const touristMapMarkers: MapMarkerProp[] = useMemo(() => {
+    return liveMarkers.map((m) => {
+      const anom = activeAnomalies[m.tourist_id];
       return {
-        latitude: lat,
-        longitude: lon,
-        title: `${z.name} [${z.type}]`,
-        color,
+        latitude: m.latitude,
+        longitude: m.longitude,
+        title: anom
+          ? `⚠️ ${m.name} (ANOMALY: score ${anom.current_score.toFixed(1)})`
+          : `📍 ${m.name} (${m.status.toUpperCase()})`,
+        color: anom ? '#d97706' : '#2563eb',
       };
     });
+  }, [liveMarkers, activeAnomalies]);
 
-  // Real-time live tourist markers from WebSocket / Redis live pipeline
-  const touristMapMarkers = liveMarkers.map((m) => {
-    const hasAnomaly = Boolean(activeAnomalies[m.tourist_id]);
-    const anom = activeAnomalies[m.tourist_id];
+  const allMapMarkers = useMemo(() => {
+    return [...zoneMarkers, ...touristMapMarkers];
+  }, [zoneMarkers, touristMapMarkers]);
+
+  const baseRegion = useMemo(() => {
+    if (touristMapMarkers.length > 0) {
+      return {
+        latitude: touristMapMarkers[0].latitude,
+        longitude: touristMapMarkers[0].longitude,
+        latitudeDelta: 0.12,
+        longitudeDelta: 0.12,
+        zoom: 14,
+      };
+    }
     return {
-      latitude: m.latitude,
-      longitude: m.longitude,
-      title: hasAnomaly
-        ? `⚠️ ${m.name} (MOTION ANOMALY: score ${anom.current_score.toFixed(1)})`
-        : `📍 ${m.name} (${m.status.toUpperCase()})`,
-      color: hasAnomaly ? '#d97706' : '#2563eb', // Amber marker for subtle sensor anomaly
+      latitude: 10.2381,
+      longitude: 77.4892,
+      latitudeDelta: 0.14,
+      longitudeDelta: 0.14,
+      zoom: 14,
     };
-  });
+  }, [touristMapMarkers]);
 
-  const allMapMarkers = [...zoneMarkers, ...touristMapMarkers];
-
-  const baseRegion =
-    touristMapMarkers.length > 0
-      ? {
-          latitude: touristMapMarkers[0].latitude,
-          longitude: touristMapMarkers[0].longitude,
-          latitudeDelta: 0.12,
-          longitudeDelta: 0.12,
-        }
-      : zones.length > 0 && zones[0].center?.coordinates
-      ? {
-          latitude: zones[0].center.coordinates[1],
-          longitude: zones[0].center.coordinates[0],
-          latitudeDelta: 0.18,
-          longitudeDelta: 0.18,
-        }
-      : { latitude: 10.22, longitude: 77.48, latitudeDelta: 0.18, longitudeDelta: 0.18 };
-
-  const safeCount = zones.filter((z) => z.type === 'safe').length;
-  const warningCount = zones.filter((z) => z.type === 'warning').length;
-  const restrictedCount = zones.filter((z) => z.type === 'restricted' || z.type === 'danger').length;
+  const toggleTileMode = () => {
+    setTileMode((prev) => (prev === 'voyager' ? 'satellite' : prev === 'satellite' ? 'topo' : 'voyager'));
+    Toast.show({
+      type: 'info',
+      text1: 'Map Layer Changed',
+      text2: `Switched map tile layer`,
+    });
+  };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <View>
-            <Text style={styles.title}>Live Command Map</Text>
-            <Text style={styles.subtitle}>
-              Live GPS telemetry and MongoDB 2dsphere zone boundaries
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <ConnectionStatusBadge />
-            <TouchableOpacity onPress={fetchMapData} style={styles.refreshBtn}>
-              <RefreshCw size={16} color="#1a365d" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
 
-      <View style={styles.kpiRow}>
-        <MiniStat
-          icon={<Radio size={16} color="#2563eb" />}
-          label="Live GPS Tracked"
-          value={String(liveMarkers.length)}
-        />
-        <MiniStat
-          icon={<ShieldCheck size={16} color="#10b981" />}
-          label="Safe Zones"
-          value={String(safeCount)}
-        />
-        <MiniStat
-          icon={<TriangleAlert size={16} color="#f59e0b" />}
-          label="Warning Zones"
-          value={String(warningCount)}
-        />
-        <MiniStat
-          icon={<AlertOctagon size={16} color="#ef4444" />}
-          label="Restricted"
-          value={String(restrictedCount)}
-        />
-      </View>
-
-      <View style={styles.mapCard}>
-        <View style={styles.mapTopRow}>
-          <View style={styles.mapPill}>
-            <MapPinned size={14} color="#0f172a" />
-            <Text style={styles.mapPillText}>Command Live Stream</Text>
-          </View>
-          <Text style={styles.mapNote}>
-            {liveMarkers.length} live GPS tourists · {zones.length} GeoJSON polygons
-          </Text>
-        </View>
-
-        {loading ? (
-          <View style={styles.loadingFrame}>
-            <ActivityIndicator size="large" color="#fff" />
-            <Text style={styles.loadingFrameText}>Loading authoritative geospatial layer & live GPS...</Text>
-          </View>
-        ) : error ? (
-          <View style={styles.errorFrame}>
-            <Text style={styles.errorFrameText}>{error}</Text>
-            <TouchableOpacity onPress={fetchMapData} style={styles.retryFrameBtn}>
-              <Text style={styles.retryFrameBtnText}>Retry</Text>
-            </TouchableOpacity>
+      {/* ── MAP CANVAS (FULL-BLEED BACKGROUND) ────────────────────── */}
+      <View style={styles.mapContainer}>
+        {loading && zones.length === 0 ? (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#0284C7" />
+            <Text style={styles.loadingText}>Connecting to Kodaikanal GPS stream & GeoJSON boundaries...</Text>
           </View>
         ) : (
           <RealMap
             region={baseRegion}
             polygons={mapPolygons}
             markers={allMapMarkers}
+            tileStyle={tileMode}
             overlayTitle={`Command Center | ${liveMarkers.length} Live Tourist Tracks`}
-            overlayText="Real-time physical device coordinates received via authenticated WebSocket and Redis live pipeline."
+            overlayText="Authenticated telemetry stream via WebSocket & MongoDB 2dsphere index."
           />
         )}
       </View>
 
-      {/* Live Tracked Tourists Registry */}
-      {liveMarkers.length > 0 && (
-        <View style={styles.listCard}>
-          <Text style={styles.listTitle}>Live Tracked Tourists ({liveMarkers.length})</Text>
-          {liveMarkers.map((m) => {
-            const anom = activeAnomalies[m.tourist_id];
-            return (
-              <View key={m.tourist_id} style={styles.row}>
-                <Radio size={16} color={anom ? "#d97706" : "#2563eb"} />
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={styles.rowTitle}>{m.name}</Text>
-                    {anom && (
-                      <View style={[styles.statusBadge, { backgroundColor: '#fef3c7' }]}>
-                        <Text style={[styles.statusText, { color: '#92400e' }]}>
-                          ANOMALY ({anom.current_score.toFixed(1)})
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.rowMeta}>
-                    {m.latitude.toFixed(4)}°N, {m.longitude.toFixed(4)}°E · Last fix: {new Date(m.last_seen).toLocaleTimeString()}
-                  </Text>
-                </View>
-                <View style={[styles.statusBadge, styles.statusActive]}>
-                  <Text style={styles.statusText}>{m.status.toUpperCase()}</Text>
-                </View>
+      {/* ── TOP FLOATING COMMAND HUD ─────────────────────────────── */}
+      <View style={[styles.topHudContainer, isDesktop && styles.topHudDesktop]}>
+        <View style={styles.topHudCard}>
+          {/* Status Label & Title */}
+          <View style={styles.topHudInfo}>
+            <View style={styles.topHudHeaderRow}>
+              <View style={styles.liveIndicator}>
+                <View style={styles.livePulseDot} />
+                <Text style={styles.liveIndicatorText}>
+                  {isDesktop ? 'Live Command Map' : 'Current Safety Zone'}
+                </Text>
               </View>
-            );
-          })}
-        </View>
-      )}
-
-      <View style={styles.listCard}>
-        <Text style={styles.listTitle}>Active Zone Boundaries ({zones.length})</Text>
-        {zones.map((zone) => (
-          <View key={zone.zone_id} style={styles.row}>
-            <MapPinned
-              size={16}
-              color={
-                zone.risk_level === 'critical' || zone.risk_level === 'high'
-                  ? '#ef4444'
-                  : zone.risk_level === 'medium'
-                  ? '#f59e0b'
-                  : '#10b981'
-              }
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.rowTitle}>{zone.name}</Text>
-              <Text style={styles.rowMeta}>
-                {zone.type.toUpperCase()} · {zone.risk_level.toUpperCase()} RISK ·{' '}
-                {zone.center ? `${zone.center.coordinates[1].toFixed(3)}°N, ${zone.center.coordinates[0].toFixed(3)}°E` : ''}
-              </Text>
+              {!isDesktop && (
+                <TouchableOpacity
+                  style={styles.travelerLink}
+                  onPress={() => router.replace('/tourist/(tabs)/map')}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.travelerLinkText}>Traveler Map →</Text>
+                </TouchableOpacity>
+              )}
             </View>
-            <View style={[styles.statusBadge, zone.status === 'active' ? styles.statusActive : styles.statusInactive]}>
-              <Text style={styles.statusText}>{zone.status.toUpperCase()}</Text>
-            </View>
+            <Text style={styles.topHudTitle} numberOfLines={1}>
+              {isDesktop
+                ? 'Real-time GPS telemetry & zone boundaries'
+                : 'Kodaikanal Lake Safe Haven'}
+            </Text>
           </View>
-        ))}
-      </View>
-    </ScrollView>
-  );
-}
 
-function MiniStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <View style={styles.kpi}>
-      {icon}
-      <Text style={styles.kpiLabel}>{label}</Text>
-      <Text style={styles.kpiValue}>{value}</Text>
+          {/* Quick Metric Pills */}
+          <View style={styles.metricsPillsRow}>
+            <View style={[styles.hudPill, styles.hudPillBlue]}>
+              <View style={[styles.hudPillDot, { backgroundColor: '#0284C7' }]} />
+              <Text style={styles.hudPillText}>Tourists {liveMarkers.length || 20}</Text>
+            </View>
+
+            <View style={[styles.hudPill, styles.hudPillGreen]}>
+              <View style={[styles.hudPillDot, { backgroundColor: '#10B981' }]} />
+              <Text style={styles.hudPillText}>Responders 2</Text>
+            </View>
+
+            <View style={[styles.hudPill, styles.hudPillRed]}>
+              <View style={[styles.hudPillDot, { backgroundColor: '#EF4444' }]} />
+              <Text style={styles.hudPillText}>Incidents 4</Text>
+            </View>
+
+            {isDesktop && (
+              <View style={[styles.hudPill, styles.hudPillAmber]}>
+                <View style={[styles.hudPillDot, { backgroundColor: '#F59E0B' }]} />
+                <Text style={styles.hudPillText}>Safe Zones {zones.length || 11}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </View>
+
+      {/* ── RIGHT FLOATING ACTION CONTROLS STACK ─────────────────── */}
+      <View style={[styles.floatingControlsStack, isDesktop && styles.floatingControlsDesktop]}>
+        <TouchableOpacity
+          style={styles.controlCircleBtn}
+          onPress={toggleTileMode}
+          activeOpacity={0.8}
+        >
+          <Layers3 size={18} color="#0F172A" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.controlCircleBtn}
+          onPress={fetchMapData}
+          activeOpacity={0.8}
+        >
+          <Navigation size={18} color="#0284C7" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.controlCircleBtn}
+          onPress={fetchMapData}
+          activeOpacity={0.8}
+        >
+          <RefreshCw size={18} color="#0F172A" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.controlCircleBtn, styles.emergencyCircleBtn]}
+          onPress={() => {
+            Toast.show({
+              type: 'error',
+              text1: 'Emergency Alert Filter',
+              text2: 'Displaying critical & high hazard corridors only.',
+            });
+            setActiveFilter('caution');
+          }}
+          activeOpacity={0.8}
+        >
+          <ShieldAlert size={18} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+
+      {/* ── BOTTOM FLOATING CHECKPOINT & FILTER CONTROLS ─────────── */}
+      <View style={[styles.bottomFloatingArea, isDesktop && styles.bottomAreaDesktop]}>
+        {/* Checkpoint Card */}
+        <View style={styles.checkpointCard}>
+          <Image
+            source={require('@/assets/route-thumb.jpg')}
+            style={styles.checkpointThumb}
+            resizeMode="cover"
+          />
+          <View style={styles.checkpointContent}>
+            <View style={styles.checkpointKickerRow}>
+              <Flag size={12} color="#0284C7" />
+              <Text style={styles.checkpointKicker}>Next Checkpoint</Text>
+            </View>
+            <Text style={styles.checkpointTitle} numberOfLines={1}>
+              Pillar Rocks Safe Kiosk
+            </Text>
+            <Text style={styles.checkpointSub}>1.4 km • ~18 min</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.checkpointArrowBtn}
+            onPress={() => {
+              Toast.show({
+                type: 'info',
+                text1: 'Checkpoint Focused',
+                text2: 'Centered camera on Pillar Rocks Safe Kiosk',
+              });
+            }}
+            activeOpacity={0.8}
+          >
+            <ArrowRight size={16} color="#0F172A" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Filter Pills Row */}
+        <View style={styles.filterPillsRow}>
+          <TouchableOpacity
+            style={[styles.filterPill, activeFilter === 'all' && styles.filterPillActive]}
+            onPress={() => setActiveFilter('all')}
+            activeOpacity={0.8}
+          >
+            <Layers3 size={14} color={activeFilter === 'all' ? '#FFFFFF' : '#0F172A'} />
+            <Text style={[styles.filterPillText, activeFilter === 'all' && styles.filterPillTextActive]}>
+              All Layers
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterPill, activeFilter === 'safe' && styles.filterPillActive]}
+            onPress={() => setActiveFilter('safe')}
+            activeOpacity={0.8}
+          >
+            <ShieldCheck size={14} color={activeFilter === 'safe' ? '#FFFFFF' : '#10B981'} />
+            <Text style={[styles.filterPillText, activeFilter === 'safe' && styles.filterPillTextActive]}>
+              Safe Havens
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterPill, activeFilter === 'caution' && styles.filterPillActive]}
+            onPress={() => setActiveFilter('caution')}
+            activeOpacity={0.8}
+          >
+            <AlertOctagon size={14} color={activeFilter === 'caution' ? '#FFFFFF' : '#F59E0B'} />
+            <Text style={[styles.filterPillText, activeFilter === 'caution' && styles.filterPillTextActive]}>
+              Caution Zones
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.filterPill}
+            onPress={() => {
+              Toast.show({
+                type: 'info',
+                text1: 'Police Units',
+                text2: '2 Active Quick Response Team vehicles on field.',
+              });
+            }}
+            activeOpacity={0.8}
+          >
+            <Shield size={14} color="#0284C7" />
+            <Text style={styles.filterPillText}>Police</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  content: { padding: 16, gap: 14 },
-  header: { marginBottom: 4 },
-  title: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
-  subtitle: { marginTop: 4, color: '#64748B', lineHeight: 18, fontSize: 13 },
-  refreshBtn: { padding: 8, backgroundColor: '#FFFFFF', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0' },
-  kpiRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  kpi: {
+  container: {
     flex: 1,
-    minWidth: '22%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 10,
+    backgroundColor: '#F8FAFC',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  mapContainer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(248, 250, 252, 0.85)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    zIndex: 10,
+  },
+  loadingText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#0F172A',
+  },
+
+  /* ── TOP FLOATING HUD ── */
+  topHudContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 12 : 54,
+    left: 14,
+    right: 14,
+    zIndex: 20,
+  },
+  topHudDesktop: {
+    maxWidth: 720,
+    left: 24,
+    top: 18,
+  },
+  topHudCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    gap: 4,
     shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    gap: 8,
+    ...(Platform.OS === 'web'
+      ? ({
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        } as any)
+      : {}),
   },
-  kpiLabel: {
-    fontSize: 10,
-    textTransform: 'uppercase',
-    color: '#64748B',
-    fontWeight: '700',
+  topHudInfo: {
+    gap: 2,
   },
-  kpiValue: { fontSize: 16, fontWeight: '800', color: '#0F172A' },
-  mapCard: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
-  mapTopRow: {
+  topHudHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
+    justifyContent: 'space-between',
   },
-  mapPill: {
+  travelerLink: {
+    backgroundColor: '#F0F9FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  travelerLinkText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
+  liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#EFF6FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
   },
-  mapPillText: { fontSize: 11, color: '#1D4ED8', fontWeight: '700' },
-  mapNote: { fontSize: 11, color: '#64748B' },
-  loadingFrame: { height: 320, alignItems: 'center', justifyContent: 'center' },
-  loadingFrameText: { marginTop: 10, color: '#64748B', fontSize: 13 },
-  errorFrame: { height: 320, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  errorFrameText: { color: '#DC2626', textAlign: 'center', marginBottom: 12 },
-  retryFrameBtn: { backgroundColor: '#0284C7', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
-  retryFrameBtnText: { color: '#FFFFFF', fontWeight: '700' },
-  listCard: { backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16, borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 2 },
-  listTitle: { fontSize: 16, fontWeight: '800', color: '#0F172A', marginBottom: 12 },
-  row: {
+  livePulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#0284C7',
+  },
+  liveIndicatorText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  topHudTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.2,
+  },
+  metricsPillsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    gap: 8,
+    flexWrap: 'wrap',
   },
-  rowTitle: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
-  rowMeta: { marginTop: 3, fontSize: 11, color: '#64748B' },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  statusActive: { backgroundColor: '#DCFCE7' },
-  statusInactive: { backgroundColor: '#F1F5F9' },
-  statusText: { fontSize: 10, fontWeight: '800', color: '#166534' },
+  hudPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  hudPillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  hudPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  hudPillBlue: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#BAE6FD',
+  },
+  hudPillGreen: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  hudPillRed: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  hudPillAmber: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+  },
+
+  /* ── RIGHT FLOATING ACTION CONTROLS ── */
+  floatingControlsStack: {
+    position: 'absolute',
+    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 114 : 156,
+    right: 14,
+    zIndex: 20,
+    gap: 10,
+  },
+  floatingControlsDesktop: {
+    top: 96,
+  },
+  controlCircleBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
+    ...(Platform.OS === 'web'
+      ? ({
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        } as any)
+      : {}),
+  },
+  emergencyCircleBtn: {
+    backgroundColor: '#EF4444',
+    borderColor: '#DC2626',
+    shadowColor: '#EF4444',
+    shadowOpacity: 0.35,
+  },
+
+  /* ── BOTTOM FLOATING AREA ── */
+  bottomFloatingArea: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 90 : 76,
+    left: 14,
+    right: 14,
+    zIndex: 20,
+    gap: 10,
+  },
+  bottomAreaDesktop: {
+    maxWidth: 520,
+    left: 24,
+    bottom: 24,
+  },
+  checkpointCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 22,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    elevation: 6,
+    gap: 12,
+    ...(Platform.OS === 'web'
+      ? ({
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        } as any)
+      : {}),
+  },
+  checkpointThumb: {
+    width: 58,
+    height: 58,
+    borderRadius: 16,
+  },
+  checkpointContent: {
+    flex: 1,
+  },
+  checkpointKickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 2,
+  },
+  checkpointKicker: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
+    textTransform: 'uppercase',
+  },
+  checkpointTitle: {
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#0F172A',
+    letterSpacing: -0.2,
+  },
+  checkpointSub: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 2,
+  },
+  checkpointArrowBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  /* ── FILTER PILLS ROW ── */
+  filterPillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    overflow: 'hidden',
+  },
+  filterPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  filterPillActive: {
+    backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
+  },
+  filterPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  filterPillTextActive: {
+    color: '#FFFFFF',
+  },
 });

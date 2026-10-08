@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import {
   MapPinned,
@@ -30,6 +31,7 @@ import {
 import Toast from 'react-native-toast-message';
 import { zoneApi } from '@/lib/api';
 import type { Zone, ZoneType, ZoneRiskLevel, ZoneStatus, ZoneAudit } from '@/types';
+import { AdminMobileTopHeader } from '@/components/admin/AdminMobileTopHeader';
 
 // Preset boundary geometries for quick development testing
 const TEMPLATE_PRESETS = [
@@ -72,6 +74,9 @@ const TEMPLATE_PRESETS = [
 ];
 
 export default function AdminZones() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 1024;
+
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -493,20 +498,40 @@ export default function AdminZones() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.title}>Safety Zones</Text>
-            <Text style={styles.subtitle}>Authoritative GeoJSON Zone Management & Audit Trails</Text>
+    <View style={styles.container}>
+      {!isDesktop ? (
+        <AdminMobileTopHeader
+          title="Safety Zones"
+          subtitle="Authoritative GeoJSON Zone Management & Audit Trails"
+          rightAction={
+            <TouchableOpacity onPress={openCreateModal} style={styles.createBtnMobile} activeOpacity={0.8}>
+              <Plus size={15} color="#fff" />
+              <Text style={styles.createBtnMobileText}>Zone</Text>
+            </TouchableOpacity>
+          }
+        />
+      ) : null}
+
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={[styles.content, !isDesktop && styles.mobileContent]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Desktop Header */}
+        {isDesktop && (
+          <View style={styles.header}>
+            <View style={styles.headerTop}>
+              <View>
+                <Text style={styles.title}>Safety Zones</Text>
+                <Text style={styles.subtitle}>Authoritative GeoJSON Zone Management & Audit Trails</Text>
+              </View>
+              <TouchableOpacity onPress={openCreateModal} style={styles.createBtn}>
+                <Plus size={18} color="#fff" />
+                <Text style={styles.createBtnText}>Create Zone</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <TouchableOpacity onPress={openCreateModal} style={styles.createBtn}>
-            <Plus size={18} color="#fff" />
-            <Text style={styles.createBtnText}>Create Zone</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+        )}
 
       {/* Search & Filter Bar */}
       <View style={styles.searchCard}>
@@ -903,7 +928,8 @@ export default function AdminZones() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -917,11 +943,28 @@ function Tag({ label, highlight }: { label: string; highlight?: boolean }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
+  scrollArea: { flex: 1 },
   content: { padding: 16, gap: 12 },
+  mobileContent: { paddingTop: 12, paddingBottom: 84 },
   header: { marginBottom: 4 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
   title: { fontSize: 24, fontWeight: '800', color: '#0F172A', letterSpacing: -0.5 },
   subtitle: { marginTop: 4, color: '#64748B', lineHeight: 18, fontSize: 13 },
+  createBtnMobile: {
+    backgroundColor: '#0284C7',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 10,
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  createBtnMobileText: { color: '#FFFFFF', fontWeight: '700', fontSize: 12 },
   createBtn: {
     backgroundColor: '#0284C7',
     flexDirection: 'row',

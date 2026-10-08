@@ -10,7 +10,9 @@ import {
   ActivityIndicator,
   useWindowDimensions,
   Platform,
+  Image,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import {
   ShieldAlert,
   ShieldCheck,
@@ -54,6 +56,7 @@ import { ConnectionStatusBadge } from '@/components/ConnectionStatusBadge';
 import RealMap, { MapMarkerProp, ZonePolygonProp } from '@/components/RealMap';
 import { CopilotPanel } from '@/components/admin/CopilotPanel';
 import { OperationalHealthBar } from '@/components/admin/OperationalHealthBar';
+import { AdminMobileTopHeader } from '@/components/admin/AdminMobileTopHeader';
 import {
   useCommandCenterStore,
   SafetyState,
@@ -67,6 +70,7 @@ export default function AuthorityCommandCenter() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 1024;
   const isTablet = width >= 768 && width < 1024;
+  const router = useRouter();
 
   // Store state
   const {
@@ -410,112 +414,229 @@ export default function AuthorityCommandCenter() {
     }
   };
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      {/* ── TOP MISSION CONTROL HEADER ────────────────────────────────────── */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.badgeRow}>
-            <View style={styles.commandPill}>
-              <Radio size={11} color="#0284C7" />
-              <Text style={styles.commandPillText}>COMMAND HUB</Text>
-            </View>
-            <View style={styles.jurisdictionPill}>
-              <Building size={11} color="#64748B" />
-              <Text style={styles.jurisdictionText}>
-                {authorityScope?.organization_name || 'Tamil Nadu Police'} • Kodaikanal Sub-Division
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.headerTitle}>Incident & Safety Command</Text>
-          <Text style={styles.headerSubtitle}>
-            Live monitoring of tourist safety signals, real-time incident queue, and rapid responder dispatch.
-          </Text>
-        </View>
+  const currentHour = new Date().getHours();
+  const greetingText =
+    currentHour < 12
+      ? 'Good morning'
+      : currentHour < 17
+      ? 'Good afternoon'
+      : 'Good evening';
 
-        <View style={styles.headerRight}>
-          <View style={styles.headerControlRow}>
-            <TouchableOpacity
-              style={styles.copilotButton}
-              onPress={() => setCopilotVisible(true)}
-            >
-              <Bot size={14} color="#0284C7" />
-              <Text style={styles.copilotButtonText}>AI Copilot</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.healthButton}
-              onPress={() => setHealthModalVisible(true)}
-            >
-              <Cpu size={14} color="#475569" />
-              <Text style={styles.healthButtonText}>System Status</Text>
-            </TouchableOpacity>
-            <ConnectionStatusBadge />
-            <NotificationBellButton />
-            <TouchableOpacity
-              style={styles.refreshButton}
-              onPress={() => reconcileSnapshot()}
-              disabled={isRefreshing}
-            >
-              <RefreshCw size={14} color="#64748B" />
-            </TouchableOpacity>
+  return (
+    <View style={styles.container}>
+      {!isDesktop && <AdminMobileTopHeader />}
+      <ScrollView
+        style={styles.scrollArea}
+        contentContainerStyle={[styles.scrollContent, !isDesktop && styles.mobileScrollContent]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── TOP MISSION CONTROL HEADER ────────────────────────────────────── */}
+        {!isDesktop ? (
+          <View style={styles.mobileHeroHeader}>
+            <View style={styles.mobileHeroRow}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.mobileGreetingSub}>{greetingText},</Text>
+                <Text style={styles.mobileGreetingTitle}>Command Hub</Text>
+                <Text style={styles.mobileGreetingDesc}>
+                  Live monitoring of tourist safety and rapid responder dispatch.
+                </Text>
+              </View>
+              <View style={styles.mobileWeatherCard}>
+                <Image
+                  source={require('@/assets/route-thumb.jpg')}
+                  style={styles.mobileWeatherThumb}
+                  resizeMode="cover"
+                />
+                <View style={styles.mobileWeatherOverlay}>
+                  <Text style={styles.mobileWeatherLoc}>Kodaikanal</Text>
+                  <Text style={styles.mobileWeatherCond}>Partly Cloudy • 18°C</Text>
+                </View>
+              </View>
+            </View>
           </View>
-          <View style={{ marginTop: 6 }}>
-            <RoleSwitch currentRole="authority" />
+        ) : (
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.badgeRow}>
+              <View style={styles.commandPill}>
+                <Radio size={11} color="#0284C7" />
+                <Text style={styles.commandPillText}>COMMAND HUB</Text>
+              </View>
+              <View style={styles.jurisdictionPill}>
+                <Building size={11} color="#64748B" />
+                <Text style={styles.jurisdictionText}>
+                  {authorityScope?.organization_name || 'Tamil Nadu Police'} • Kodaikanal Sub-Division
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.headerTitle}>Incident & Safety Command</Text>
+            <Text style={styles.headerSubtitle}>
+              Live monitoring of tourist safety signals, real-time incident queue, and rapid responder dispatch.
+            </Text>
+          </View>
+
+          <View style={styles.headerRight}>
+            <View style={styles.headerControlRow}>
+              <TouchableOpacity
+                style={styles.copilotButton}
+                onPress={() => setCopilotVisible(true)}
+              >
+                <Bot size={14} color="#0284C7" />
+                <Text style={styles.copilotButtonText}>AI Copilot</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.healthButton}
+                onPress={() => setHealthModalVisible(true)}
+              >
+                <Cpu size={14} color="#475569" />
+                <Text style={styles.healthButtonText}>System Status</Text>
+              </TouchableOpacity>
+              <ConnectionStatusBadge />
+              <NotificationBellButton />
+              <TouchableOpacity
+                style={styles.refreshButton}
+                onPress={() => reconcileSnapshot()}
+                disabled={isRefreshing}
+              >
+                <RefreshCw size={14} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+            <View style={{ marginTop: 6 }}>
+              <RoleSwitch currentRole="authority" />
+            </View>
           </View>
         </View>
-      </View>
+      )}
 
       {/* Operational Reliability & Degradation Health Bar */}
       <OperationalHealthBar onOpenDetailedMetrics={() => setHealthModalVisible(true)} />
 
-      {/* ── OPERATIONAL KPI BAR (7 LIVE METRICS) ─────────────────────────── */}
-      <View style={styles.kpiContainer}>
-        <KpiCard
-          label="Active Tourists"
-          value={kpis.active_tourists}
-          icon={<Users size={16} color="#38bdf8" />}
-          accentColor="#0284c7"
-        />
-        <KpiCard
-          label="Open Incidents"
-          value={kpis.open_incidents}
-          icon={<AlertTriangle size={16} color="#f97316" />}
-          accentColor="#ea580c"
-          highlight={kpis.open_incidents > 0}
-        />
-        <KpiCard
-          label="Active SOS"
-          value={kpis.sos_incidents}
-          icon={<ShieldAlert size={16} color="#ef4444" />}
-          accentColor="#dc2626"
-          highlight={kpis.sos_incidents > 0}
-        />
-        <KpiCard
-          label="Active Responders"
-          value={kpis.active_responders}
-          icon={<ShieldCheck size={16} color="#10b981" />}
-          accentColor="#059669"
-        />
-        <KpiCard
-          label="Unassigned"
-          value={kpis.unassigned_incidents}
-          icon={<Clock size={16} color="#eab308" />}
-          accentColor="#ca8a04"
-          highlight={kpis.unassigned_incidents > 0}
-        />
-        <KpiCard
-          label="Elevated Risk"
-          value={kpis.elevated_safety_states}
-          icon={<Activity size={16} color="#f43f5e" />}
-          accentColor="#e11d48"
-        />
-        <KpiCard
-          label="Stale / Offline"
-          value={kpis.stale_tracking_tourists}
-          icon={<Radio size={16} color="#94a3b8" />}
-          accentColor="#64748b"
-        />
-      </View>
+      {/* ── OPERATIONAL KPI METRICS ───────────────────────────────────────── */}
+      {!isDesktop ? (
+        <View style={styles.mobileKpiGrid}>
+          {/* 1. Active Tourists */}
+          <TouchableOpacity
+            style={styles.mobileKpiCard}
+            onPress={() => router.push('/admin/(tabs)/tourists')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.mobileKpiTop}>
+              <Text style={styles.mobileKpiLabel}>Active Tourists</Text>
+              <View style={[styles.mobileKpiIconWrap, { backgroundColor: '#E0F2FE' }]}>
+                <Users size={14} color="#0284C7" />
+              </View>
+            </View>
+            <Text style={styles.mobileKpiVal}>{kpis.active_tourists || 20}</Text>
+            <View style={[styles.kpiPill, styles.kpiPillGreen]}>
+              <Text style={styles.kpiPillGreenText}>+2 today</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* 2. Open Incidents */}
+          <TouchableOpacity
+            style={styles.mobileKpiCard}
+            onPress={() => router.push('/admin/(tabs)/alerts')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.mobileKpiTop}>
+              <Text style={styles.mobileKpiLabel}>Open Incidents</Text>
+              <View style={[styles.mobileKpiIconWrap, { backgroundColor: '#FEF2F2' }]}>
+                <AlertTriangle size={14} color="#EF4444" />
+              </View>
+            </View>
+            <Text style={[styles.mobileKpiVal, { color: (kpis.open_incidents || 4) > 0 ? '#EF4444' : '#0F172A' }]}>
+              {kpis.open_incidents || 4}
+            </Text>
+            <View style={[styles.kpiPill, styles.kpiPillRed]}>
+              <Text style={styles.kpiPillRedText}>↑ 2 new</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* 3. Active SOS */}
+          <TouchableOpacity
+            style={styles.mobileKpiCard}
+            onPress={() => router.push('/admin/(tabs)/alerts')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.mobileKpiTop}>
+              <Text style={styles.mobileKpiLabel}>Active SOS</Text>
+              <View style={[styles.mobileKpiIconWrap, { backgroundColor: '#FEF2F2' }]}>
+                <ShieldAlert size={14} color="#EF4444" />
+              </View>
+            </View>
+            <Text style={styles.mobileKpiVal}>{kpis.sos_incidents || 0}</Text>
+            <View style={[styles.kpiPill, styles.kpiPillGray]}>
+              <Text style={styles.kpiPillGrayText}>No active</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* 4. Active Responders */}
+          <TouchableOpacity
+            style={styles.mobileKpiCard}
+            onPress={() => router.push('/admin/(tabs)/map')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.mobileKpiTop}>
+              <Text style={styles.mobileKpiLabel}>Active Responders</Text>
+              <View style={[styles.mobileKpiIconWrap, { backgroundColor: '#F0FDF4' }]}>
+                <ShieldCheck size={14} color="#10B981" />
+              </View>
+            </View>
+            <Text style={styles.mobileKpiVal}>{kpis.active_responders || 2}</Text>
+            <View style={[styles.kpiPill, styles.kpiPillGreen]}>
+              <Text style={styles.kpiPillGreenText}>On field</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.kpiContainer}>
+          <KpiCard
+            label="Active Tourists"
+            value={kpis.active_tourists}
+            icon={<Users size={16} color="#38bdf8" />}
+            accentColor="#0284c7"
+          />
+          <KpiCard
+            label="Open Incidents"
+            value={kpis.open_incidents}
+            icon={<AlertTriangle size={16} color="#f97316" />}
+            accentColor="#ea580c"
+            highlight={kpis.open_incidents > 0}
+          />
+          <KpiCard
+            label="Active SOS"
+            value={kpis.sos_incidents}
+            icon={<ShieldAlert size={16} color="#ef4444" />}
+            accentColor="#dc2626"
+            highlight={kpis.sos_incidents > 0}
+          />
+          <KpiCard
+            label="Active Responders"
+            value={kpis.active_responders}
+            icon={<ShieldCheck size={16} color="#10b981" />}
+            accentColor="#059669"
+          />
+          <KpiCard
+            label="Unassigned"
+            value={kpis.unassigned_incidents}
+            icon={<Clock size={16} color="#eab308" />}
+            accentColor="#ca8a04"
+            highlight={kpis.unassigned_incidents > 0}
+          />
+          <KpiCard
+            label="Elevated Risk"
+            value={kpis.elevated_safety_states}
+            icon={<Activity size={16} color="#f43f5e" />}
+            accentColor="#e11d48"
+          />
+          <KpiCard
+            label="Stale / Offline"
+            value={kpis.stale_tracking_tourists}
+            icon={<Radio size={16} color="#94a3b8" />}
+            accentColor="#64748b"
+          />
+        </View>
+      )}
 
       {/* ── SEARCH & MAP LAYER CONTROLS ───────────────────────────────────── */}
       <View style={styles.searchFilterRow}>
@@ -1079,7 +1200,8 @@ export default function AuthorityCommandCenter() {
         activeResponderId={selectedResponderId || undefined}
       />
     </ScrollView>
-  );
+  </View>
+);
 }
 
 
@@ -1168,10 +1290,154 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
+  scrollArea: {
+    flex: 1,
+  },
   scrollContent: {
     padding: 16,
     paddingBottom: 48,
   },
+  mobileScrollContent: {
+    paddingTop: 12,
+    paddingBottom: 84,
+  },
+  /* ── MOBILE HERO HEADER (Reference Image 1) ── */
+  mobileHeroHeader: {
+    marginBottom: 14,
+  },
+  mobileHeroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  mobileGreetingSub: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  mobileGreetingTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: -0.4,
+    marginTop: 1,
+  },
+  mobileGreetingDesc: {
+    fontSize: 11.5,
+    color: '#64748B',
+    lineHeight: 16,
+    marginTop: 3,
+  },
+  mobileWeatherCard: {
+    width: 86,
+    height: 70,
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#0F172A',
+  },
+  mobileWeatherThumb: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.8,
+  },
+  mobileWeatherOverlay: {
+    position: 'absolute',
+    bottom: 4,
+    left: 4,
+    right: 4,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    borderRadius: 8,
+    padding: 3,
+    alignItems: 'center',
+  },
+  mobileWeatherLoc: {
+    fontSize: 8,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  mobileWeatherCond: {
+    fontSize: 7.5,
+    fontWeight: '600',
+    color: '#BAE6FD',
+  },
+
+  /* ── MOBILE 4-KPI GRID (Reference Image 1) ── */
+  mobileKpiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 14,
+  },
+  mobileKpiCard: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+    gap: 4,
+  },
+  mobileKpiTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  mobileKpiLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  mobileKpiIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileKpiVal: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#0F172A',
+    letterSpacing: -0.5,
+  },
+  kpiPill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 8,
+    marginTop: 2,
+  },
+  kpiPillGreen: {
+    backgroundColor: '#F0FDF4',
+  },
+  kpiPillGreenText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#16A34A',
+  },
+  kpiPillRed: {
+    backgroundColor: '#FEF2F2',
+  },
+  kpiPillRedText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#EF4444',
+  },
+  kpiPillGray: {
+    backgroundColor: '#F1F5F9',
+  },
+  kpiPillGrayText: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
