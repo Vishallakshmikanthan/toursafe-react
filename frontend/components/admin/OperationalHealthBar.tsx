@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useReliabilityStore } from '../../store/reliabilityStore';
-import { Activity, ShieldCheck, AlertTriangle, Cpu } from 'lucide-react-native';
+import { Activity, ShieldCheck, AlertTriangle, Cpu, ChevronRight } from 'lucide-react-native';
 
 interface Props {
   onOpenDetailedMetrics?: () => void;
@@ -40,21 +40,25 @@ export const OperationalHealthBar: React.FC<Props> = ({ onOpenDetailedMetrics })
       case 'FULL':
         return 'All Safety Systems Operational';
       case 'DEGRADED':
-        return 'System Degraded — Auxiliary Services Fallback Active';
+        return 'System Degraded — Fallback Active';
       case 'CRITICAL_ONLY':
-        return 'CRITICAL-ONLY MODE — AI & Analytics Load-Shed Active';
+        return 'CRITICAL-ONLY MODE — Load-Shed Active';
       case 'OFFLINE':
         return 'Emergency Offline Mode';
     }
   };
 
   return (
-    <View style={[styles.container, { borderLeftColor: getStatusColor() }]}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onOpenDetailedMetrics}
+      activeOpacity={0.8}
+    >
       <View style={styles.leftRow}>
         <View style={[styles.indicatorDot, { backgroundColor: getStatusColor() }]} />
         <View>
           <Text style={styles.statusText}>{getStatusLabel()}</Text>
-          <Text style={styles.reasonText}>{modeReason}</Text>
+          <Text style={styles.reasonText}>{modeReason || 'System healthy • SRE Health'}</Text>
         </View>
       </View>
 
@@ -62,23 +66,12 @@ export const OperationalHealthBar: React.FC<Props> = ({ onOpenDetailedMetrics })
         {goldenSignals && (
           <View style={styles.metricBadge}>
             <Activity size={12} color="#0284C7" />
-            <Text style={styles.metricLabel}>API p95:</Text>
             <Text style={styles.metricValue}>{goldenSignals.latency_ms.p95}ms</Text>
           </View>
         )}
-        {onOpenDetailedMetrics && (
-          <TouchableOpacity
-            style={styles.detailsButton}
-            onPress={onOpenDetailedMetrics}
-            accessibilityRole="button"
-            accessibilityLabel="Open SRE Health Metrics"
-          >
-            <Cpu size={12} color="#334155" />
-            <Text style={styles.detailsButtonText}>SRE Health</Text>
-          </TouchableOpacity>
-        )}
+        <ChevronRight size={16} color="#64748B" />
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -93,7 +86,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginHorizontal: 0,
     marginBottom: 14,
-    borderRadius: 10,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     shadowColor: '#0F172A',
