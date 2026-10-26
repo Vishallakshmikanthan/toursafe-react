@@ -1,0 +1,336 @@
+{
+  "zones": [
+    {
+      "id": "zone_safe_kodaikanal_lake",
+      "zone_name": "Kodaikanal Lake Safe Perimeter",
+      "zone_type": "safe",
+      "risk_level": "safe",
+      "is_active": true,
+      "center": { "latitude": 10.2381, "longitude": 77.4892 },
+      "radius_meters": 800,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.4842, 10.2351],
+            [77.4932, 10.2351],
+            [77.4932, 10.2411],
+            [77.4842, 10.2411],
+            [77.4842, 10.2351]
+          ]
+        ]
+      },
+      "alert_messages": {
+        "en": "You are within the Kodaikanal Lake protected safety perimeter. Police patrols are active.",
+        "hi": "आप कोडाइकनाल झील संरक्षित सुरक्षा क्षेत्र में हैं। पुलिस गश्त सक्रिय है।",
+        "ta": "நீங்கள் கொடைக்கானல் ஏரி பாதுகாக்கப்பட்ட பகுதியில் உள்ளீர்கள். காவல் கண்காணிப்பு செயலில் உள்ளது."
+      },
+      "anomaly_threshold": 0.50
+    },
+    {
+      "id": "zone_warning_coakers_walk",
+      "zone_name": "Coaker's Walk Cliff Edge",
+      "zone_type": "warning",
+      "risk_level": "warning",
+      "is_active": true,
+      "center": { "latitude": 10.2291, "longitude": 77.4947 },
+      "radius_meters": 500,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.4900, 10.2250],
+            [77.4990, 10.2250],
+            [77.4990, 10.2330],
+            [77.4900, 10.2330],
+            [77.4900, 10.2250]
+          ]
+        ]
+      },
+      "alert_messages": {
+        "en": "Caution: Steep mountain ridge with sudden mist and fog. Stay on marked paved trails.",
+        "hi": "सावधानी: अचानक कोहरा और तीव्र ढलान। केवल चिह्नित पगडंडियों पर रहें।",
+        "ta": "எச்சரிக்கை: செங்குத்தான மலைப்பகுதி மற்றும் அடர்ந்த மூடுபனி. நடைபாதையில் மட்டுமே செல்லவும்."
+      },
+      "anomaly_threshold": 0.40
+    },
+    {
+      "id": "zone_danger_guna_caves",
+      "zone_name": "Guna Caves (Devil's Kitchen)",
+      "zone_type": "danger",
+      "risk_level": "danger",
+      "is_active": true,
+      "center": { "latitude": 10.2167, "longitude": 77.4833 },
+      "radius_meters": 600,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.4780, 10.2120],
+            [77.4880, 10.2120],
+            [77.4880, 10.2210],
+            [77.4780, 10.2210],
+            [77.4780, 10.2120]
+          ]
+        ]
+      },
+      "alert_messages": {
+        "en": "DANGER: High-risk drop zone with vertical chasms and unstable terrain. Entry beyond fence is prohibited.",
+        "hi": "खतरा: गहरी खाइयां और अस्थिर चट्टानें। बाड़ के पार जाना सख्त मना है।",
+        "ta": "ஆபத்து: ஆழமான பள்ளத்தாக்குகள் மற்றும் ஆபத்தான பாறைகள். வேலிக்கு அப்பால் செல்ல தடை விதிக்கப்பட்டுள்ளது."
+      },
+      "anomaly_threshold": 0.30
+    },
+    {
+      "id": "zone_restricted_berijam_forest",
+      "zone_name": "Berijam Core Tiger Sanctuary",
+      "zone_type": "restricted",
+      "risk_level": "critical",
+      "is_active": true,
+      "center": { "latitude": 10.1833, "longitude": 77.4167 },
+      "radius_meters": 1200,
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [77.4050, 10.1730],
+            [77.4280, 10.1730],
+            [77.4280, 10.1930],
+            [77.4050, 10.1930],
+            [77.4050, 10.1730]
+          ]
+        ]
+      },
+      "alert_messages": {
+        "en": "RESTRICTED ENTRY: Forest Department Permit required. Wildlife corridor. Immediate incident candidate dispatch on entry.",
+        "hi": "प्रतिबंधित क्षेत्र: वन विभाग की अनुमति अनिवार्य। वन्यजीव क्षेत्र। प्रवेश पर तत्काल कार्रवाई होगी।",
+        "ta": "தடைசெய்யப்பட்ட பகுதி: வனத்துறை அனுமதி கட்டாயம். வனவிலங்கு நடமாட்டம் உள்ள பகுதி."
+      },
+      "anomaly_threshold": 0.20
+    }
+  ],
+  "tourists": [
+    {
+      "id": "tourist_001_arun",
+      "user_id": "usr_78a1bc92",
+      "full_name": "Arunachalam Ramanathan",
+      "phone": "+919876543210",
+      "email": "arun.ramanathan@example.com",
+      "nationality": "Indian",
+      "safety_state": "NORMAL",
+      "safety_score": 96.5,
+      "current_location": {
+        "latitude": 10.2385,
+        "longitude": 77.4895,
+        "altitude": 2130.4,
+        "accuracy": 4.2,
+        "speed": 1.2,
+        "bearing": 182.0,
+        "timestamp": "2026-10-26T12:00:00Z"
+      },
+      "emergency_contacts": [
+        {
+          "name": "Meenakshi Ramanathan",
+          "relationship": "Spouse",
+          "phone": "+919876543211",
+          "is_primary": true
+        }
+      ],
+      "digital_credential": {
+        "credential_id": "vc_ts_ind_2026_09482",
+        "issuer": "did:gov:in:tamilnadu:tourism",
+        "issuance_date": "2026-10-25T08:00:00Z",
+        "expiry_date": "2026-11-05T23:59:59Z",
+        "verification_status": "VERIFIED_AADHAAR_KYC",
+        "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "consent_flags": {
+        "telemetry_stream_enabled": true,
+        "precise_location_enabled": true,
+        "emergency_sharing_enabled": true,
+        "ml_anomaly_detection_enabled": true
+      }
+    },
+    {
+      "id": "tourist_002_elena",
+      "user_id": "usr_99f4d110",
+      "full_name": "Elena Rostova",
+      "phone": "+447911123456",
+      "email": "elena.rostova@example.co.uk",
+      "nationality": "British",
+      "safety_state": "ELEVATED",
+      "safety_score": 64.2,
+      "current_location": {
+        "latitude": 10.2162,
+        "longitude": 77.4839,
+        "altitude": 2210.0,
+        "accuracy": 8.5,
+        "speed": 0.1,
+        "bearing": 45.0,
+        "timestamp": "2026-10-26T12:01:30Z"
+      },
+      "emergency_contacts": [
+        {
+          "name": "David Smith",
+          "relationship": "Emergency Contact",
+          "phone": "+447911987654",
+          "is_primary": true
+        }
+      ],
+      "digital_credential": {
+        "credential_id": "vc_ts_intl_2026_11048",
+        "issuer": "did:gov:in:tamilnadu:tourism",
+        "issuance_date": "2026-10-20T10:00:00Z",
+        "expiry_date": "2026-11-20T23:59:59Z",
+        "verification_status": "VERIFIED_PASSPORT_EVISA",
+        "sha256_hash": "88d4266fd4e6338d13b845fcf289579d209c897823b9217da3e161936f031589"
+      },
+      "consent_flags": {
+        "telemetry_stream_enabled": true,
+        "precise_location_enabled": true,
+        "emergency_sharing_enabled": true,
+        "ml_anomaly_detection_enabled": true
+      }
+    }
+  ],
+  "responders": [
+    {
+      "id": "resp_police_unit_1",
+      "name": "Inspector K. Vijay",
+      "agency": "Tamil Nadu Tourist Police",
+      "unit_type": "POLICE_PATROL",
+      "call_sign": "DELTA-9",
+      "status": "AVAILABLE",
+      "current_location": {
+        "latitude": 10.2370,
+        "longitude": 77.4880,
+        "accuracy": 3.0,
+        "last_updated": "2026-10-26T12:02:00Z"
+      },
+      "contact_phone": "+919445012345",
+      "equipment": ["First Aid Kit", "VHF Radio", "Defibrillator", "4x4 Vehicle"],
+      "jurisdiction_id": "DISTRICT_DINDIGUL_SOUTH"
+    },
+    {
+      "id": "resp_medical_emt_1",
+      "name": "Paramedic Dr. Priya Sundaram",
+      "agency": "State Health Disaster Medical Services",
+      "unit_type": "AMBULANCE_ADVANCED_LIFE_SUPPORT",
+      "call_sign": "MEDIC-108",
+      "status": "AVAILABLE",
+      "current_location": {
+        "latitude": 10.2340,
+        "longitude": 77.4860,
+        "accuracy": 4.0,
+        "last_updated": "2026-10-26T12:02:10Z"
+      },
+      "contact_phone": "+919445098765",
+      "equipment": ["ALS Trauma Kit", "Oxygen Supply", "Telemetry Monitor", "Spine Board"],
+      "jurisdiction_id": "DISTRICT_DINDIGUL_SOUTH"
+    },
+    {
+      "id": "resp_forest_rescue_1",
+      "name": "Ranger Murugan Selvam",
+      "agency": "Department of Forest and Wildlife",
+      "unit_type": "MOUNTAIN_SEARCH_AND_RESCUE",
+      "call_sign": "FOREST-ALPHA",
+      "status": "EN_ROUTE",
+      "current_location": {
+        "latitude": 10.2180,
+        "longitude": 77.4810,
+        "accuracy": 6.5,
+        "last_updated": "2026-10-26T12:01:45Z"
+      },
+      "contact_phone": "+919445067890",
+      "equipment": ["Rappel Harnesses", "Thermal Drone", "GPS Beacon Receiver", "Stretcher"],
+      "jurisdiction_id": "DISTRICT_DINDIGUL_FOREST"
+    }
+  ],
+  "incidents": [
+    {
+      "id": "inc_2026_1026_001",
+      "tourist_id": "tourist_002_elena",
+      "severity": "CRITICAL",
+      "incident_type": "FALL_IMPACT_AND_ZONE_HAZARD",
+      "status": "DISPATCHED",
+      "created_at": "2026-10-26T12:01:30Z",
+      "location": {
+        "latitude": 10.2162,
+        "longitude": 77.4839,
+        "altitude": 2210.0,
+        "zone_id": "zone_danger_guna_caves"
+      },
+      "telemetry_trigger": {
+        "ml_reconstruction_error": 0.884,
+        "peak_acceleration_g": 3.92,
+        "post_impact_immobility_seconds": 28,
+        "anomaly_classification": "FALL_AND_UNRESPONSIVE"
+      },
+      "assigned_responders": [
+        {
+          "responder_id": "resp_forest_rescue_1",
+          "assigned_at": "2026-10-26T12:01:45Z",
+          "eta_minutes": 7.5,
+          "distance_meters": 620
+        },
+        {
+          "responder_id": "resp_medical_emt_1",
+          "assigned_at": "2026-10-26T12:02:10Z",
+          "eta_minutes": 14.0,
+          "distance_meters": 2400
+        }
+      ],
+      "sla_timeline": {
+        "target_ack_seconds": 60,
+        "target_dispatch_seconds": 180,
+        "actual_ack_seconds": 15,
+        "actual_dispatch_seconds": 40
+      }
+    }
+  ],
+  "sample_imu_telemetry_windows": {
+    "normal_walking": {
+      "sampling_rate_hz": 50,
+      "window_size_samples": 150,
+      "duration_seconds": 3.0,
+      "mean_accel_magnitude_g": 1.02,
+      "peak_accel_g": 1.35,
+      "mean_gyro_magnitude_dps": 42.1,
+      "anomaly_score_expected": 0.08,
+      "classification_expected": "NORMAL_LOCOMOTION",
+      "sample_vector_head": [
+        { "ax": 0.04, "ay": 0.98, "az": 0.12, "gx": 0.02, "gy": 0.05, "gz": -0.01, "timestamp_ms": 0 },
+        { "ax": 0.08, "ay": 1.05, "az": 0.14, "gx": 0.03, "gy": 0.08, "gz": -0.02, "timestamp_ms": 20 },
+        { "ax": 0.12, "ay": 1.18, "az": 0.10, "gx": 0.06, "gy": 0.12, "gz": -0.01, "timestamp_ms": 40 }
+      ]
+    },
+    "violent_fall_impact": {
+      "sampling_rate_hz": 50,
+      "window_size_samples": 150,
+      "duration_seconds": 3.0,
+      "mean_accel_magnitude_g": 1.48,
+      "peak_accel_g": 4.82,
+      "mean_gyro_magnitude_dps": 185.4,
+      "anomaly_score_expected": 0.92,
+      "classification_expected": "CRITICAL_FALL_IMPACT",
+      "sample_vector_head": [
+        { "ax": 0.11, "ay": 0.96, "az": 0.15, "gx": 0.02, "gy": 0.04, "gz": 0.01, "timestamp_ms": 0 },
+        { "ax": -0.42, "ay": 0.31, "az": -0.10, "gx": 1.25, "gy": 2.40, "gz": -0.85, "timestamp_ms": 780 },
+        { "ax": 3.12, "ay": 3.45, "az": -1.80, "gx": 4.10, "gy": -5.20, "gz": 3.10, "timestamp_ms": 920 },
+        { "ax": 0.02, "ay": 0.03, "az": 0.99, "gx": 0.00, "gy": 0.01, "gz": 0.00, "timestamp_ms": 2100 }
+      ]
+    }
+  },
+  "sample_copilot_queries": [
+    {
+      "prompt": "Summarize active incidents in Guna Caves and recommend dispatch unit.",
+      "expected_tool": "get_active_incidents",
+      "expected_arguments": { "zone_id": "zone_danger_guna_caves" },
+      "proposed_action": {
+        "action_type": "DISPATCH_RESPONDER",
+        "action_target": "resp_forest_rescue_1",
+        "requires_human_approval": true
+      }
+    }
+  ]
+}

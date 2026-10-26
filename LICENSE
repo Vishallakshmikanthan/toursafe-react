@@ -1,0 +1,69 @@
+PROPRIETARY SOFTWARE LICENSE & INTELLECTUAL PROPERTY AGREEMENT
+==============================================================
+
+PROJECT NAME: TourSafe
+COPYRIGHT (C) 2026 VISHAL LAKSHMIKANTHAN. ALL RIGHTS RESERVED.
+AUTHOR & SOLE INTELLECTUAL PROPERTY OWNER: 
+Vishal Lakshmikanthan (vishallakshmikanthan777@gmail.com)
+
+------------------------------------------------------------------------------
+TERMS AND CONDITIONS FOR ACCESS, USE, AND RETENTION
+------------------------------------------------------------------------------
+
+1. OWNERSHIP & PROPRIETARY RIGHTS
+   TourSafe, including without limitation all source code, software architecture,
+   machine learning models, algorithms, kinematics processing engines, user
+   interfaces, database schemas, documentation, designs, trademarks, and trade
+   secrets (collectively, the "Software and Materials"), are the exclusive,
+   sole, and absolute intellectual property of Vishal Lakshmikanthan ("Owner").
+   
+   This software is proprietary and confidential. No title to or ownership of
+   the Software and Materials, or any intellectual property rights embodied
+   therein, is transferred to any person, company, institution, or third party.
+
+2. RESERVATION OF ALL RIGHTS
+   All rights, titles, and interests in and to the Software and Materials,
+   worldwide, including all copyright, patent, trademark, trade dress, trade
+   secret, and moral rights, are expressly reserved by Vishal Lakshmikanthan.
+
+3. STRICT RESTRICTIONS & PROHIBITIONS
+   Except as explicitly agreed to in a separate, valid, written contract signed
+   personally by Vishal Lakshmikanthan, NO PERSON OR ENTITY MAY:
+   
+   a. Copy, reproduce, clone, duplicate, or mirror the Software and Materials,
+      in whole or in part, in any format, medium, or repository.
+   b. Modify, adapt, translate, enhance, create derivative works of, or rewrite
+      the Software and Materials.
+   c. Distribute, publish, lease, sell, sublicense, rent, assign, convey, or
+      otherwise transfer or share the Software and Materials to any third party.
+   d. Reverse engineer, decompile, disassemble, extract, decrypt, or attempt to
+      derive the underlying algorithms, source code, data pipelines, or ML
+      weights.
+   e. Use the Software and Materials for any commercial purpose, public or
+      private deployment, SaaS hosting, enterprise licensing, or government
+      demonstration without express written licensing agreements from the Owner.
+   f. Remove, obscure, or alter any copyright notices, trademark notices,
+      attribution watermarks, or proprietary legends contained within or
+      affixed to the Software and Materials.
+
+4. GOVERNMENT & COMMERCIAL DEPLOYMENTS
+   Any deployment, trial, proof of concept (PoC), government pilot, or vendor
+   integration of TourSafe requires a formal, executed Commercial / Enterprise
+   Software License Agreement signed directly by Vishal Lakshmikanthan.
+
+5. DISCLAIMER OF WARRANTIES
+   THE SOFTWARE AND MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+   KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+   IN NO EVENT SHALL THE OWNER, VISHAL LAKSHMIKANTHAN, BE LIABLE FOR ANY CLAIM,
+   DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR
+   OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE
+   USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+------------------------------------------------------------------------------
+For licensing inquiries, commercial authorization, or deployment requests,
+contact:
+Vishal Lakshmikanthan
+Email: vishallakshmikanthan777@gmail.com
+GitHub: https://github.com/Vishallakshmikanthan
+------------------------------------------------------------------------------
